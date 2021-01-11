@@ -19,11 +19,12 @@
 
     <Button
         android:id="@+id/plusButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:layout_marginEnd="30dp"
-        android:background="#F40808"
-        android:backgroundTint="@color/black"
+        android:background="@color/black"
+        android:backgroundTint="#D80707"
         android:text="Plus"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/counterTextView" />
@@ -58,4 +59,36 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/minusButton"
         app:rippleColor="#CA0F0F" />
+
+    <EditText
+        android:id="@+id/numberEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:ems="10"
+        android:hint="       Enter number"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toStartOf="@+id/setNumberButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/counterPressed" />
+
+    <Button
+        android:id="@+id/setNumberButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="15dp"
+        android:text="Set"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/counterPressed" />
+
+    <Button
+        android:id="@+id/goOtherButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="Go Other"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
