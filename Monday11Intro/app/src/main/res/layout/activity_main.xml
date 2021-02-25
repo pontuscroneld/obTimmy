@@ -18,18 +18,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/plusButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="30dp"
-        android:background="@color/black"
-        android:backgroundTint="#D80707"
-        android:text="Plus"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/counterTextView" />
-
-    <Button
         android:id="@+id/minusButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,16 +26,6 @@
         android:text="Minus"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/counterTextView" />
-
-    <TextView
-        android:id="@+id/counterPressed"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="102dp"
-        android:text="0"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/plusButton" />
 
     <Button
         android:id="@+id/resetButton"
@@ -64,23 +42,23 @@
         android:id="@+id/numberEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="30dp"
         android:ems="10"
         android:hint="       Enter number"
         android:inputType="textPersonName"
         app:layout_constraintEnd_toStartOf="@+id/setNumberButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/counterPressed" />
+        app:layout_constraintTop_toBottomOf="@+id/resetButton" />
 
     <Button
         android:id="@+id/setNumberButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="30dp"
         android:layout_marginEnd="15dp"
         android:text="Set"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/counterPressed" />
+        app:layout_constraintTop_toBottomOf="@+id/resetButton" />
 
     <Button
         android:id="@+id/goOtherButton"
@@ -91,4 +69,14 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/plusButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="30dp"
+        android:text="Plus"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/counterTextView" />
 </androidx.constraintlayout.widget.ConstraintLayout>

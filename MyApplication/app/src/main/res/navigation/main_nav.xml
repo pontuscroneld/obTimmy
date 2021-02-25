@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_nav"
+    app:startDestination="@id/startFragment">
+
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.example.myapplication.StartFragment"
+        android:label="fragment_start"
+        tools:layout="@layout/fragment_start" >
+        <action
+            android:id="@+id/action_startToWage"
+            app:destination="@id/wageFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/wageFragment"
+        android:name="com.example.myapplication.WageFragment"
+        android:label="fragment_wage"
+        tools:layout="@layout/fragment_wage" >
+        <action
+            android:id="@+id/action_wageToShifts"
+            app:destination="@id/shiftsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/shiftsFragment"
+        android:name="com.example.myapplication.ShiftsFragment"
+        android:label="fragment_shifts"
+        tools:layout="@layout/fragment_shifts_2" >
+        <action
+            android:id="@+id/action_shiftsToFinal"
+            app:destination="@id/finalFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/finalFragment"
+        android:name="com.example.myapplication.FinalFragment"
+        android:label="fragment_final"
+        tools:layout="@layout/fragment_final" />
+</navigation>

@@ -19,10 +19,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         var counterTextView = findViewById<TextView>(R.id.counterTextView)
-        var counterPressed = findViewById<TextView>(R.id.counterPressed)
+
 
         counterTextView.text = counterNumber.toString()
-        counterPressed.text = count.toString()
+
 
         var plusButton = findViewById<Button>(R.id.plusButton)
         var minusButton = findViewById<Button>(R.id.minusButton)
@@ -31,21 +31,10 @@ class MainActivity : AppCompatActivity() {
         var goOtherButton = findViewById<Button>(R.id.goOtherButton)
 
         plusButton.setOnClickListener {
-            counterNumber = counterNumber + 1
-            count = count + 1
-            counterTextView.text = counterNumber.toString()
-            counterPressed.text = count.toString()
+            calculateNumber("+")
         }
         minusButton.setOnClickListener {
-
-            if(counterNumber <= 0){
-                counterNumber = 0
-            } else {
-                counterNumber = counterNumber - 1
-                count = count + 1
-            }
-            counterTextView.text = counterNumber.toString()
-            counterPressed.text = count.toString()
+           calculateNumber("-")
         }
         resetButton.setOnClickListener {
             resetCounting()
@@ -83,13 +72,36 @@ class MainActivity : AppCompatActivity() {
     fun resetCounting()
     {
         counterNumber = 0
-        count = 0
+
         var counterTextView = findViewById<TextView>(R.id.counterTextView)
-        var counterPressed = findViewById<TextView>(R.id.counterPressed)
+
         counterTextView.text = counterNumber.toString()
-        counterPressed.text = count.toString()
+
     }
 
+    fun calculateNumber(calcMode : String)
+    {
+        if(calcMode == "+"){
+            counterNumber = counterNumber + 1
 
+        }
+        if(calcMode == "-"){
+            if(counterNumber <= 0){
+                counterNumber = 0
+            } else {
+                counterNumber = counterNumber - 1
+            }
+        }
 
+        var counterTextView = findViewById<TextView>(R.id.counterTextView)
+        counterTextView.text = counterNumber.toString()
+
+    }
+
+    fun makeNumber(numberText : String) : Int?
+    {
+
+        var theNumber = numberText.toIntOrNull()
+        return theNumber
+    }
 }

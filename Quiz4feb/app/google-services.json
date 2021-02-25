@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "798802662205",
+    "firebase_url": "https://android-3d98d-default-rtdb.firebaseio.com",
+    "project_id": "android-3d98d",
+    "storage_bucket": "android-3d98d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:798802662205:android:b00ce0a97757183247eb54",
+        "android_client_info": {
+          "package_name": "com.example.quiz4feb"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "798802662205-adfrng3lkbgseb2oj0edin93s3q050ba.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0ig0sTsycP5zCDINGtsPp6jZEmzMzU-Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "798802662205-adfrng3lkbgseb2oj0edin93s3q050ba.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:798802662205:android:b0c536371351f0d147eb54",
+        "android_client_info": {
+          "package_name": "se.magictechnology.pia9cooking"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "798802662205-adfrng3lkbgseb2oj0edin93s3q050ba.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0ig0sTsycP5zCDINGtsPp6jZEmzMzU-Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "798802662205-adfrng3lkbgseb2oj0edin93s3q050ba.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
