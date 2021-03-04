@@ -14,10 +14,10 @@ import java.text.SimpleDateFormat
 
 class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
 
-    lateinit var newShift : SingleShift
+
     private var VMdateInfo = MutableLiveData<String>()
 
-    var hourlyWage = 0
+    var hourlyWage = 1
 
     fun getDateInfo() : LiveData<String>
     {
@@ -76,7 +76,7 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
 
             VMdateInfo.value = dateText
             Log.d("timmydebug", "Använder createShift-funktionen")
-            //createShift(chosenDate, endDate, firstDate.datum, firstDate.veckodag, firstDate.rodDag, firstDate.helgdag)
+            createShift(chosenDate, endDate, firstDate.datum, firstDate.veckodag, firstDate.rodDag, firstDate.helgdag)
 
             //TODO("HÄR HAR JAG FÅTT ALL INFORMATION JAG BEHÖVER OM SKIFTET INNAN JAG KAN RÄKNA UT OB")
 
@@ -152,7 +152,10 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
 
         //TODO("HUR SKA JAG SÄTTA IHOP ALL INFORMATION TILL EN FIL AV DATAKLASSEN SINGLE SHIFT?")
 
+        var newShift = SingleShift()
+
         Log.d("timmydebug", "Running fun createShift in ShiftsModel")
+        Log.d("timmydebug", redDay)
 
         if(redDay == "Ja"){
             // Daytype är Holiday
@@ -176,13 +179,19 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
         }
 
 
+        val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd")
+        val dateString = simpleDateFormat.format(startTime)
 
+        newShift.shiftDuration = (endTime - startTime) /1000/60
+        newShift.startTime = startTime
+        newShift.endTime = endTime
+        newShift.dayOfTheWeek = dayOfTheWeek
+        newShift.shiftEarnings = newShift.getShiftEarnings(hourlyWage.toDouble())
+        newShift.obEarnings = newShift.getOBHoursHandels(hourlyWage.toDouble())
+        newShift.date = dateString
 
-
-
+        Log.d("timmydebug", newShift.toString())
 
     }
-
-
 
 }

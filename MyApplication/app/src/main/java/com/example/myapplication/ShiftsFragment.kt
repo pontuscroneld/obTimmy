@@ -105,6 +105,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
                 cal.set(Calendar.DAY_OF_MONTH, startDay)
 
                 var startTD = TimePickerDialog(context, this, hour, minute, true)
+
                 startTD.show()
             }
             startDP.show()
@@ -120,7 +121,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             startDP.setOnDateSetListener { view, year, month, dayOfMonth ->
                 endYear = year
                 endMonth = month
-                endDay = day
+                endDay = dayOfMonth
                 val cal = Calendar.getInstance()
                 //cal.set(savedHour, savedMinute)
                 cal.set(Calendar.YEAR, endYear)
@@ -151,15 +152,21 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
     override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
 
+
+
         if(isStartTime){
             startHour = hourOfDay
             startMinute = minute
             val cal = Calendar.getInstance()
+
+            cal.set(Calendar.YEAR, startYear)
+            cal.set(Calendar.MONTH, startMonth)
+            cal.set(Calendar.DAY_OF_MONTH, startDay)
             cal.set(Calendar.HOUR, startHour)
             cal.set(Calendar.MINUTE, startMinute)
             val startStamp = cal.timeInMillis
 
-            val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
+            val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd hh:mm")
             val dateString = simpleDateFormat.format(startStamp)
 
             Log.d("timmydebug", dateString)
@@ -172,6 +179,9 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             endMinute = minute
             val cal = Calendar.getInstance()
             //cal.set(savedHour, savedMinute)
+            cal.set(Calendar.YEAR, endYear)
+            cal.set(Calendar.MONTH, endMonth)
+            cal.set(Calendar.DAY_OF_MONTH, endDay)
             cal.set(Calendar.HOUR, endHour)
             cal.set(Calendar.MINUTE, endMinute)
 
@@ -194,12 +204,17 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         Log.d("timmydebug", "Running fun calcDurationInFrag in ShiftsFragment")
 
         val cal = Calendar.getInstance()
-        //cal.set(savedHour, savedMinute)
+        cal.set(Calendar.YEAR, startYear)
+        cal.set(Calendar.MONTH, startMonth)
+        cal.set(Calendar.DAY_OF_MONTH, startDay)
         cal.set(Calendar.HOUR, startHour)
         cal.set(Calendar.MINUTE, startMinute)
 
         val startStamp = cal.timeInMillis
 
+        cal.set(Calendar.YEAR, endYear)
+        cal.set(Calendar.MONTH, endMonth)
+        cal.set(Calendar.DAY_OF_MONTH, endDay)
         cal.set(Calendar.HOUR, endHour)
         cal.set(Calendar.MINUTE, endMinute)
 

@@ -47,6 +47,9 @@ class WageFragment : Fragment() {
             } else {
 
                 var hourlyWage = wageET.text.toString().toInt()
+
+                // SPara i sharedPreferences
+
                 Log.d("timmydebug", "Hourly wage set to: " + hourlyWage)
                 shiftsModel.hourlyWage = hourlyWage
 

@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.util.Log
 import java.util.*
 
 enum class dayType {
@@ -7,38 +8,58 @@ enum class dayType {
 }
 
 
-data class SingleShift(var weekday: dayType,
-                       var startTime: Long,
-                       var endTime: Long,
-                       var shiftDuration: Long,
-                       var shiftEarnings: Double,
-                       var obEarnings: Double,
-                       var dayOfTheWeek: String
+data class SingleShift(var weekday: dayType? = null,
+                       var startTime: Long? = null,
+                       var endTime: Long? = null,
+                       var shiftDuration: Long? = null,
+                       var shiftEarnings: Double? = null,
+                       var obEarnings: Double? = null,
+                       var dayOfTheWeek: String? = null,
+                       var date: String? = null
 
 ){
-    fun getOBHoursHandels(startTime: Long, endTime: Long) : Double {
 
-        var wage = 100
-        var minuteWage = wage.toDouble()/60
+    fun getShiftEarnings(hourlyWage : Double) : Double {
+        var diffTime = (endTime!!-startTime!!)/1000
 
-        var shift = SingleShift(dayType.holidayDay, 1201239, 12031093, 132131,
-                13.0, 0.0, "Måndag")
+        // Diff time är tiden man jobbar i sekunder
+
+        var diffTimeInMinutes = diffTime / 60
+        val diffTimeInHours = diffTime / 3600
+        val minutesMinusHours = diffTimeInMinutes - (diffTimeInHours * 60)
+
+        Log.d("timmydebug", "Timmar: " + diffTimeInHours + " Minuter: " + minutesMinusHours)
+
+        var minuteWage = hourlyWage.toDouble()/60
+        var earnings = (diffTimeInHours * hourlyWage) + (minutesMinusHours * minuteWage )
+
+        Log.d("timmydebug", "Timlön för " + diffTimeInHours + " timmar + " + minutesMinusHours + " minuter blir " + earnings + "kr")
+
+        return earnings
+    }
+
+    fun getOBHoursHandels(hourlyWage: Double) : Double {
+
+
+        var minuteWage = hourlyWage.toDouble()/60
+
+        //var shift = SingleShift(dayType.holidayDay, 1201239, 12031093, 132131, 13.0, 0.0, "Måndag")
 
         val cal = Calendar.getInstance()
-        cal.time.time = startTime
+        cal.time.time = startTime!!
         val currentDay = cal[Calendar.DAY_OF_MONTH]
 
 
-        if (shift.weekday == dayType.holidayDay) {
-            var extraWage = shift.shiftEarnings
+        if (weekday == dayType.holidayDay) {
+            var extraWage = shiftEarnings
 
-            return extraWage
+            return extraWage!!
             // På en söndag/helgdag så räknas varje timme dubbelt. Därför blir extra wage samma som shiftEarnings.
 
         }
 
         // Holiday Eve
-        if (shift.weekday == dayType.holidayEve) {
+        if (weekday == dayType.holidayEve) {
 
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
@@ -46,13 +67,13 @@ data class SingleShift(var weekday: dayType,
             cal.set(Calendar.MINUTE, 0)
 
             val OBtimeStamp = cal.time.time
-            var difference = (shift.endTime-OBtimeStamp) / 1000
+            var difference = (endTime!!-OBtimeStamp) / 1000
 
             val OBHours = difference / 3600
             difference = difference - OBHours * 3600
             val OBMinutes = difference / 60
 
-            var extraWage = (OBHours * wage + OBMinutes * minuteWage).toDouble()
+            var extraWage = (OBHours * hourlyWage + OBMinutes * minuteWage).toDouble()
 
             return extraWage
 
@@ -62,14 +83,14 @@ data class SingleShift(var weekday: dayType,
 
 
         // Vardag
-        if(shift.weekday == dayType.notHoliday){
+        if(weekday == dayType.notHoliday){
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
             cal.set(Calendar.HOUR, 18)
             cal.set(Calendar.MINUTE, 15)
 
             val OBtimeStamp = cal.time.time
-            var difference = (shift.endTime-OBtimeStamp) / 1000
+            var difference = (endTime!!-OBtimeStamp) / 1000
 
             if(difference < 0){
                 // PERSONEN FÅR INGEN OB
@@ -80,7 +101,7 @@ data class SingleShift(var weekday: dayType,
                 difference = difference - OBHours * 3600
                 val OBMinutes = difference / 60
 
-                var extraWage = (OBHours * wage + OBMinutes * minuteWage)/2.toDouble()
+                var extraWage = (OBHours * hourlyWage + OBMinutes * minuteWage)/2.toDouble()
 
                 return extraWage
                 // En vardag tjänar man 50% extra efter kl 18.15.
@@ -93,27 +114,22 @@ data class SingleShift(var weekday: dayType,
 
     }
 
-    fun getOBHoursRest(startTime: Long, endTime: Long) : Double
+    fun getOBHoursRest() : Double
 
     {
-
-        var wage = 100
-        var shift = SingleShift(dayType.holidayDay, 1201239, 12031093, 132131,
-                13.0, 0.0, "Måndag")
-
         val cal = Calendar.getInstance()
-        cal.time.time = startTime
+        cal.time.time = startTime!!
         val currentDay = cal[Calendar.DAY_OF_MONTH]
 
 
-        if(shift.weekday == dayType.notHoliday){
+        if(weekday == dayType.notHoliday){
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
             cal.set(Calendar.HOUR, 20)
             cal.set(Calendar.MINUTE, 0)
 
             val OBtimeStamp = cal.time.time
-            var difference = (shift.endTime-OBtimeStamp) / 1000
+            var difference = (endTime!!-OBtimeStamp) / 1000
 
             if(difference < 0){
                 // PERSONEN FÅR INGEN OB
@@ -128,7 +144,7 @@ data class SingleShift(var weekday: dayType,
 
             // En vardag tjänar man 11.75kr för varje påbörjad halvtimme
         }
-        if(shift.weekday == dayType.holidayEve){
+        if(weekday == dayType.holidayEve){
 
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
@@ -136,7 +152,7 @@ data class SingleShift(var weekday: dayType,
             cal.set(Calendar.MINUTE, 0)
 
             val OBtimeStamp = cal.time.time
-            var difference = (shift.endTime-OBtimeStamp) / 1000
+            var difference = (endTime!!-OBtimeStamp) / 1000
 
             if(difference < 0){
                 // PERSONEN FÅR INGEN OB
@@ -152,14 +168,14 @@ data class SingleShift(var weekday: dayType,
                 // En helgafton tjänar man 11.75kr för varje påbörjad halvtimme från kl 16
             }
         }
-        if(shift.weekday == dayType.holidayDay){
+        if(weekday == dayType.holidayDay){
 
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
             cal.set(Calendar.HOUR, 6)
             cal.set(Calendar.MINUTE, 0)
 
-            var diffTime = (endTime-startTime)/1000
+            var diffTime = (endTime!!-startTime!!)/1000
 
             // Diff time är tiden man jobbar i sekunder
 
