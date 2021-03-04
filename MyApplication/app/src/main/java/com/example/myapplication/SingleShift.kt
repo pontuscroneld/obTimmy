@@ -11,14 +11,18 @@ data class SingleShift(var weekday: dayType,
                        var startTime: Long,
                        var endTime: Long,
                        var shiftDuration: Long,
-                       var id: Int
-)
+                       var shiftEarnings: Double,
+                       var obEarnings: Double,
+                       var dayOfTheWeek: String
 
-    fun getOBHoursHandels(startTime: Long, endTime: Long) : Long {
+){
+    fun getOBHoursHandels(startTime: Long, endTime: Long) : Double {
 
         var wage = 100
-        var shift = SingleShift(dayType.holidayDay, 1201239, 12031093, 132131, 1)
+        var minuteWage = wage.toDouble()/60
 
+        var shift = SingleShift(dayType.holidayDay, 1201239, 12031093, 132131,
+                13.0, 0.0, "Måndag")
 
         val cal = Calendar.getInstance()
         cal.time.time = startTime
@@ -26,15 +30,15 @@ data class SingleShift(var weekday: dayType,
 
 
         if (shift.weekday == dayType.holidayDay) {
-            shift.shiftDuration *= 2
+            var extraWage = shift.shiftEarnings
 
-            return shift.shiftDuration
-            // På en söndag/helgdag så räknas varje timme dubbelt. Därför blir Duration dubbel.
+            return extraWage
+            // På en söndag/helgdag så räknas varje timme dubbelt. Därför blir extra wage samma som shiftEarnings.
 
         }
 
-            // Holiday Eve
-         if (shift.weekday == dayType.holidayEve) {
+        // Holiday Eve
+        if (shift.weekday == dayType.holidayEve) {
 
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
@@ -48,12 +52,11 @@ data class SingleShift(var weekday: dayType,
             difference = difference - OBHours * 3600
             val OBMinutes = difference / 60
 
-             shift.shiftDuration += OBHours
-             shift.shiftDuration += OBMinutes
+            var extraWage = (OBHours * wage + OBMinutes * minuteWage).toDouble()
 
-             return shift.shiftDuration
+            return extraWage
 
-             // På en lördag ska man få dubbel lön efter klockan tolv. Därför räknas timmar och minuter efter kl 12 två gånger.
+            // På en lördag ska man få dubbel lön efter klockan tolv. Därför räknas timmar och minuter efter kl 12 två gånger.
 
         }
 
@@ -70,137 +73,111 @@ data class SingleShift(var weekday: dayType,
 
             if(difference < 0){
                 // PERSONEN FÅR INGEN OB
+                return 0.0
 
             } else {
                 val OBHours = difference / 3600
                 difference = difference - OBHours * 3600
                 val OBMinutes = difference / 60
 
-                shift.shiftDuration += OBHours/2
-                shift.shiftDuration += OBMinutes/2
+                var extraWage = (OBHours * wage + OBMinutes * minuteWage)/2.toDouble()
 
-                return shift.shiftDuration
-                // En vardag tjänar man 50% extra efter kl 18.15. 
+                return extraWage
+                // En vardag tjänar man 50% extra efter kl 18.15.
 
             }
+        } else {
+            // Om inget stämmer in, ge ingen OB, något har blivit fel
+            return 0.0
         }
 
-        return shift.shiftDuration
     }
 
-fun getOBHoursRest(startTime: Long, endTime: Long) : Double
+    fun getOBHoursRest(startTime: Long, endTime: Long) : Double
 
-{
+    {
 
-    var wage = 100
-    var shift = SingleShift(dayType.holidayDay, 1201239, 12031093, 132131, 1)
+        var wage = 100
+        var shift = SingleShift(dayType.holidayDay, 1201239, 12031093, 132131,
+                13.0, 0.0, "Måndag")
 
-    val cal = Calendar.getInstance()
-    cal.time.time = startTime
-    val currentDay = cal[Calendar.DAY_OF_MONTH]
-
-
-    if(shift.weekday == dayType.notHoliday){
         val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_MONTH, currentDay)
-        cal.set(Calendar.HOUR, 20)
-        cal.set(Calendar.MINUTE, 0)
+        cal.time.time = startTime
+        val currentDay = cal[Calendar.DAY_OF_MONTH]
 
-        val OBtimeStamp = cal.time.time
-        var difference = (shift.endTime-OBtimeStamp) / 1000
 
-        if(difference < 0){
-            // PERSONEN FÅR INGEN OB
+        if(shift.weekday == dayType.notHoliday){
+            val cal = Calendar.getInstance()
+            cal.set(Calendar.DAY_OF_MONTH, currentDay)
+            cal.set(Calendar.HOUR, 20)
+            cal.set(Calendar.MINUTE, 0)
 
-        } else {
+            val OBtimeStamp = cal.time.time
+            var difference = (shift.endTime-OBtimeStamp) / 1000
 
-        }
-            val OBHalfHours = difference / 7200
+            if(difference < 0){
+                // PERSONEN FÅR INGEN OB
+
+            } else {
+
+            }
+            val OBHalfHours = difference / 1800 + 1
             val extraWage = OBHalfHours * 11.75
 
             return extraWage
 
             // En vardag tjänar man 11.75kr för varje påbörjad halvtimme
-    }
-    if(shift.weekday == dayType.holidayEve){
+        }
+        if(shift.weekday == dayType.holidayEve){
 
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_MONTH, currentDay)
-        cal.set(Calendar.HOUR, 16)
-        cal.set(Calendar.MINUTE, 0)
+            val cal = Calendar.getInstance()
+            cal.set(Calendar.DAY_OF_MONTH, currentDay)
+            cal.set(Calendar.HOUR, 16)
+            cal.set(Calendar.MINUTE, 0)
 
-        val OBtimeStamp = cal.time.time
-        var difference = (shift.endTime-OBtimeStamp) / 1000
+            val OBtimeStamp = cal.time.time
+            var difference = (shift.endTime-OBtimeStamp) / 1000
 
-        if(difference < 0){
-            // PERSONEN FÅR INGEN OB
+            if(difference < 0){
+                // PERSONEN FÅR INGEN OB
+                return 0.0
 
-        } else {
+            } else {
 
-            val OBHalfHours = difference / 7200
-            val extraWage = OBHalfHours * 11.75
+                val OBHalfHours = difference / 1800 + 1
+                val extraWage = OBHalfHours * 11.75
+
+                return extraWage
+
+                // En helgafton tjänar man 11.75kr för varje påbörjad halvtimme från kl 16
+            }
+        }
+        if(shift.weekday == dayType.holidayDay){
+
+            val cal = Calendar.getInstance()
+            cal.set(Calendar.DAY_OF_MONTH, currentDay)
+            cal.set(Calendar.HOUR, 6)
+            cal.set(Calendar.MINUTE, 0)
+
+            var diffTime = (endTime-startTime)/1000
+
+            // Diff time är tiden man jobbar i sekunder
+
+            val workingHalfHours = diffTime / 1800 + 1
+            val extraWage = workingHalfHours * 11.75
 
             return extraWage
 
-            // En helgafton tjänar man 11.75kr för varje påbörjad halvtimme
+            // En helgdag tjänar man 11.75kr för varje påbörjad halvtimme
         }
-    }
-    if(shift.weekday == dayType.holidayDay){
 
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_MONTH, currentDay)
-        cal.set(Calendar.HOUR, 6)
-        cal.set(Calendar.MINUTE, 0)
-
-        val OBtimeStamp = cal.time.time
-        var difference = (shift.endTime-OBtimeStamp) / 1000
-
-        if(difference < 0){
-            // PERSONEN FÅR INGEN OB
-
-        } else {
-
-        }
-        val OBHalfHours = difference / 7200
-        val extraWage = OBHalfHours * 11.75
-
-        return extraWage
-
-        // En helgdag tjänar man 11.75kr för varje påbörjad halvtimme
-    }
- else{
-     return 0.0
+        return 0.0
     }
 
-    return 0.0
 }
-/*
-fun calcDuration()
-    {
-        val cal = Calendar.getInstance()
-        //cal.set(savedHour, savedMinute)
-        cal.set(Calendar.HOUR, startHour)
-        cal.set(Calendar.MINUTE, startMinute)
 
-        val startStamp = cal.timeInMillis
 
-        cal.set(Calendar.HOUR, endHour)
-        cal.set(Calendar.MINUTE, endMinute)
 
-        val endStamp = cal.time.time
-        var diffStamp = (endStamp-startStamp)/1000
-
-        // 37.8653
-
-        val workHours = diffStamp/3600
-        diffStamp = diffStamp - workHours * 3600
-        val workMinutes = diffStamp/60
-
-        // Spara DATUM OCH TID, i shiftobjektet skapa en "getOBfunktion",
-        // Skjut på hur jag ska spara lite i framtiden och fundera ut logiken först.
-
-    }
- */
 
     /*
 

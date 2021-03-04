@@ -29,7 +29,7 @@ class StartFragment : Fragment() {
         val shopButton = view.findViewById<Button>(R.id.startShopButton)
 
         shopButton.setOnClickListener {
-            findNavController().navigate(R.id.action_startToWage)
+            findNavController().navigate(R.id.action_startToShifts)
         }
 
     }

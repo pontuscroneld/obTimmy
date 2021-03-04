@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -44,8 +45,9 @@ class WageFragment : Fragment() {
             {
 
             } else {
-                var hourlyWage = wageET.text.toString().toInt()
 
+                var hourlyWage = wageET.text.toString().toInt()
+                Log.d("timmydebug", "Hourly wage set to: " + hourlyWage)
                 shiftsModel.hourlyWage = hourlyWage
 
                 hourlyWage?.let{

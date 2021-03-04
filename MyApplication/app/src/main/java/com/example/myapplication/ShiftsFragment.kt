@@ -10,14 +10,12 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
-import android.widget.TimePicker
-import android.widget.DatePicker
+import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
+import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -29,6 +27,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     */
 
     lateinit var shiftsModel : ShiftsModel
+
 
     var startDay = 0
     var startMonth = 0
@@ -62,8 +61,33 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
+        shiftsModel = ViewModelProvider(this).get(ShiftsModel::class.java)
         val startTimeButton = view.findViewById<Button>(R.id.shiftsStartTimeButton)
+
+        var wageSlider = view.findViewById<SeekBar>(R.id.shiftsSliderBar)
+        wageSlider.max = 250
+
+
+
+        wageSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                Log.d("timmydebug", progress.toString())
+                view.findViewById<TextView>(R.id.shiftsWageTV).text = "Timlön: " + progress
+                shiftsModel.hourlyWage = progress
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+                Log.d("timmydebug", "Touching bar")
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+
 
         startTimeButton.setOnClickListener{
             isStartTime = true
@@ -133,9 +157,15 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             val cal = Calendar.getInstance()
             cal.set(Calendar.HOUR, startHour)
             cal.set(Calendar.MINUTE, startMinute)
+            val startStamp = cal.timeInMillis
 
-            val startTimeText = view?.findViewById<TextView>(R.id.shiftsStartTimeTextView)
-            startTimeText?.text = startDay.toString() + startHour.toString() + startMinute.toString()
+            val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
+            val dateString = simpleDateFormat.format(startStamp)
+
+            Log.d("timmydebug", dateString)
+            Log.d("timmydebug", "Start time set")
+
+
 
         } else {
             endHour = hourOfDay
@@ -145,16 +175,24 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             cal.set(Calendar.HOUR, endHour)
             cal.set(Calendar.MINUTE, endMinute)
 
-            val endTimeText = view?.findViewById<TextView>(R.id.shiftsEndTimeTextView)
-            endTimeText?.text = endDay.toString() + endHour.toString() + endMinute.toString()
+            val endStamp = cal.timeInMillis
 
-            calcDuration()
+            val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
+            val dateString = simpleDateFormat.format(endStamp)
+
+            Log.d("timmydebug", dateString)
+            Log.d("timmydebug", "End time set")
+
+            calcDurationInFrag()
         }
 
     }
 
-    fun calcDuration()
+    fun calcDurationInFrag()
     {
+
+        Log.d("timmydebug", "Running fun calcDurationInFrag in ShiftsFragment")
+
         val cal = Calendar.getInstance()
         //cal.set(savedHour, savedMinute)
         cal.set(Calendar.HOUR, startHour)
@@ -165,26 +203,18 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         cal.set(Calendar.HOUR, endHour)
         cal.set(Calendar.MINUTE, endMinute)
 
-        val endStamp = cal.time.time
-        var diffStamp = (endStamp-startStamp)/1000
+        val endStamp = cal.timeInMillis
 
-        // 37.8653
+        shiftsModel.calcDuration(startStamp, endStamp)
 
-        val workHours = diffStamp/3600
-        diffStamp = diffStamp - workHours * 3600
-        val workMinutes = diffStamp/60
+        shiftsModel.getDateInfo().observe(this) {
+            Log.d("timmydebug", it)
+        }
 
-        val totalHoursWorked = workHours + workMinutes/60
-
-        Log.d("DEBUGging", totalHoursWorked.toString())
-
-        val resultText = view?.findViewById<TextView>(R.id.shiftsResultTextView)
-        resultText?.text = totalHoursWorked.toString()
-
-        // Spara DATUM OCH TID, i shiftobjektet skapa en "getOBfunktion",
-        // Skjut på hur jag ska spara lite i framtiden och fundera ut logiken först.
 
     }
+
+
 
 
 

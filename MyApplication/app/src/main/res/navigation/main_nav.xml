@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_startToWage"
             app:destination="@id/wageFragment" />
+        <action
+            android:id="@+id/action_startToShifts"
+            app:destination="@id/shiftsFragment" />
     </fragment>
     <fragment
         android:id="@+id/wageFragment"
