@@ -1,10 +1,8 @@
 package com.example.myapplication
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.observe
+import androidx.lifecycle.*
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import java.io.BufferedReader
@@ -12,7 +10,9 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 
-class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
+class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by MainScope() {
+
+    private val database = DatabaseModel(app)
 
 
     private var VMdateInfo = MutableLiveData<String>()
@@ -34,7 +34,6 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
             val dateString = simpleDateFormat.format(chosenDate)
 
             val firstDate = loadapi(dateString)
-            Log.d("timmydebug", firstDate.datum)
 
             if(firstDate.datum == null)
             {
@@ -75,7 +74,7 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
             }
 
             VMdateInfo.value = dateText
-            Log.d("timmydebug", "Använder createShift-funktionen")
+
             createShift(chosenDate, endDate, firstDate.datum, firstDate.veckodag, firstDate.rodDag, firstDate.helgdag)
 
             //TODO("HÄR HAR JAG FÅTT ALL INFORMATION JAG BEHÖVER OM SKIFTET INNAN JAG KAN RÄKNA UT OB")
@@ -92,8 +91,6 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
         return withContext(Dispatchers.IO) {
             val theurl = URL("http://sholiday.faboul.se/dagar/v2.1/" + dateString)
 
-            Log.d("PontusDebug", dateString)
-            Log.d("PontusDebug", theurl.toString())
 
             val theConnection = (theurl.openConnection() as? HttpURLConnection)!!.apply {
                 requestMethod = "GET"
@@ -105,11 +102,8 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
 
             val theResultString = reader.readText()
 
-            Log.d("PontusDebug", theResultString)
-
             val theInfo = Gson().fromJson(theResultString, apiDays::class.java)
 
-            Log.d("PontusDebug", theInfo.toString())
             return@withContext theInfo.dagar[0]
 
 
@@ -121,7 +115,9 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
             Log.d("timmydebug", "Running fun calcDuration in ShiftsModel")
             if(startStamp > endStamp)
             {
-                Log.d("timmydebug", "Startdatum är före slutdatum.")
+
+                Log.d("timmydebug", startStamp.toString() + " is bigger than " + endStamp.toString())
+                Log.d("timmydebug", "Slutdatum är före startdatum.")
             } else {
 
                 var diffTime = (endStamp-startStamp)/1000
@@ -132,14 +128,11 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
                 val diffTimeInHours = diffTime / 3600
                 val minutesMinusHours = diffTimeInMinutes - (diffTimeInHours * 60)
 
-                Log.d("timmydebug", "Timmar: " + diffTimeInHours + " Minuter: " + minutesMinusHours)
-
                 var minuteWage = hourlyWage.toDouble()/60
 
-                Log.d("timmydebug", "Hourly wage delat på 60 blir: " + minuteWage)
 
                 var earnings = (diffTimeInHours * hourlyWage) + (minutesMinusHours * minuteWage )
-                Log.d("timmydebug", "Timlön för " + diffTimeInHours + " timmar + " + minutesMinusHours + " minuter blir " + earnings + "kr")
+                //Log.d("timmydebug", "Timlön för " + diffTimeInHours + " timmar + " + minutesMinusHours + " minuter blir " + earnings + "kr")
 
                 //TODO("HÄR HAR JAG RÄKNAT UT ANTAL TIMMAR PÅ ETT ARBETSPASS OCH HUR MYCKET MAN TJÄNAR PÅ DET" + "NU BEHÖVER JAG KOPPA DETTA TILL RÄKNA OB FUNKTIONERNA I SINGLE SHIFT")
 
@@ -152,10 +145,9 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
 
         //TODO("HUR SKA JAG SÄTTA IHOP ALL INFORMATION TILL EN FIL AV DATAKLASSEN SINGLE SHIFT?")
 
-        var newShift = SingleShift()
+        var newShift = DatabaseModel.SingleShift2()
 
         Log.d("timmydebug", "Running fun createShift in ShiftsModel")
-        Log.d("timmydebug", redDay)
 
         if(redDay == "Ja"){
             // Daytype är Holiday
@@ -180,18 +172,42 @@ class ShiftsModel : ViewModel(), CoroutineScope by MainScope() {
 
 
         val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd")
+        val extendedFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
         val dateString = simpleDateFormat.format(startTime)
+        var extDateString = extendedFormat.format(startTime)
 
-        newShift.shiftDuration = (endTime - startTime) /1000/60
-        newShift.startTime = startTime
-        newShift.endTime = endTime
-        newShift.dayOfTheWeek = dayOfTheWeek
-        newShift.shiftEarnings = newShift.getShiftEarnings(hourlyWage.toDouble())
-        newShift.obEarnings = newShift.getOBHoursHandels(hourlyWage.toDouble())
-        newShift.date = dateString
+        Log.d("timmydebug", "Starttime: " + startTime.toString() + " is it the same as " + extDateString )
+
+        extDateString = extendedFormat.format(endTime)
+        Log.d("timmydebug", "Starttime: " + endTime.toString() + " is it the same as " + extDateString )
+
+        launch(Dispatchers.IO){
+            newShift.shiftDuration = (endTime - startTime) /1000/60
+            newShift.startTime = startTime
+            newShift.endTime = endTime
+            newShift.dayOfTheWeek = dayOfTheWeek
+            newShift.shiftEarnings = newShift.getShiftEarnings(hourlyWage.toDouble())
+            newShift.obEarnings = newShift.getOBHoursHandels(hourlyWage.toDouble())
+            newShift.date = dateString
+
+            database.shiftDB.ShiftDao().insertAll(newShift)
+
+        }
+
+
 
         Log.d("timmydebug", newShift.toString())
 
     }
 
+}
+
+class Factory(val app: Application) : ViewModelProvider.Factory {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ShiftsModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return ShiftsModel(app) as T
+        }
+        throw IllegalArgumentException("Unable to construct viewmodel")
+    }
 }

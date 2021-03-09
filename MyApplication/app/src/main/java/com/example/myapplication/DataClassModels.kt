@@ -10,3 +10,7 @@ data class apiDateInfo(val datum : String, val veckodag: String,
                        @SerializedName("röd dag") val rodDag: String, val helgdag : String?)
 
 data class shiftsList(val shifts : MutableList<SingleShift>)
+
+enum class dayType {
+    notHoliday, holidayEve, holidayDay
+}

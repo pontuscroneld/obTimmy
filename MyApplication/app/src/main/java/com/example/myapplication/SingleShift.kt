@@ -3,9 +3,7 @@ package com.example.myapplication
 import android.util.Log
 import java.util.*
 
-enum class dayType {
-    notHoliday, holidayEve, holidayDay
-}
+
 
 
 data class SingleShift(var weekday: dayType? = null,
@@ -46,13 +44,17 @@ data class SingleShift(var weekday: dayType? = null,
         //var shift = SingleShift(dayType.holidayDay, 1201239, 12031093, 132131, 13.0, 0.0, "Måndag")
 
         val cal = Calendar.getInstance()
-        cal.time.time = startTime!!
+        cal.timeInMillis = startTime!!
+
+        val currentYear = cal[Calendar.YEAR]
+        val currentMonth = cal[Calendar.MONTH]
         val currentDay = cal[Calendar.DAY_OF_MONTH]
 
 
         if (weekday == dayType.holidayDay) {
             var extraWage = shiftEarnings
 
+            Log.d("timmydebug", "OB earnings are: " + extraWage)
             return extraWage!!
             // På en söndag/helgdag så räknas varje timme dubbelt. Därför blir extra wage samma som shiftEarnings.
 
@@ -62,19 +64,38 @@ data class SingleShift(var weekday: dayType? = null,
         if (weekday == dayType.holidayEve) {
 
             val cal = Calendar.getInstance()
+            cal.set(Calendar.YEAR, currentYear)
+            cal.set(Calendar.MONTH, currentMonth)
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
-            cal.set(Calendar.HOUR, 12)
+            cal.set(Calendar.HOUR_OF_DAY, 12)
             cal.set(Calendar.MINUTE, 0)
+            cal.set(Calendar.SECOND, 0)
+            cal.set(Calendar.MILLISECOND, 0)
 
-            val OBtimeStamp = cal.time.time
-            var difference = (endTime!!-OBtimeStamp) / 1000
+            val OBtimeStamp = cal.timeInMillis
+
+            var difference = 0L
+
+            if(OBtimeStamp < startTime!!){
+                difference = (endTime!! - startTime!!) /1000
+
+            } else {
+                difference = (endTime!!-OBtimeStamp) / 1000
+            }
+
+            Log.d("timmydebug", "OBTimeStamp är : " + OBtimeStamp.toString())
+            Log.d("timmydebug", "OB-seconds are: " + difference.toString())
 
             val OBHours = difference / 3600
             difference = difference - OBHours * 3600
             val OBMinutes = difference / 60
 
+            Log.d("timmydebug", "OB-hours are: " + OBHours.toString())
+            Log.d("timmydebug", "OB-minutes are: " + OBMinutes.toString())
+
             var extraWage = (OBHours * hourlyWage + OBMinutes * minuteWage).toDouble()
 
+            Log.d("timmydebug", "OB earnings are: " + extraWage)
             return extraWage
 
             // På en lördag ska man få dubbel lön efter klockan tolv. Därför räknas timmar och minuter efter kl 12 två gånger.
@@ -86,7 +107,7 @@ data class SingleShift(var weekday: dayType? = null,
         if(weekday == dayType.notHoliday){
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
-            cal.set(Calendar.HOUR, 18)
+            cal.set(Calendar.HOUR_OF_DAY, 18)
             cal.set(Calendar.MINUTE, 15)
 
             val OBtimeStamp = cal.time.time
@@ -103,6 +124,9 @@ data class SingleShift(var weekday: dayType? = null,
 
                 var extraWage = (OBHours * hourlyWage + OBMinutes * minuteWage)/2.toDouble()
 
+                Log.d("timmydebug", "OB-hours are: " + OBHours.toString())
+                Log.d("timmydebug", "OB-minutes are: " + OBMinutes.toString())
+                Log.d("timmydebug", "OB earnings are: " + extraWage)
                 return extraWage
                 // En vardag tjänar man 50% extra efter kl 18.15.
 
@@ -125,7 +149,7 @@ data class SingleShift(var weekday: dayType? = null,
         if(weekday == dayType.notHoliday){
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
-            cal.set(Calendar.HOUR, 20)
+            cal.set(Calendar.HOUR_OF_DAY, 20)
             cal.set(Calendar.MINUTE, 0)
 
             val OBtimeStamp = cal.time.time
@@ -148,7 +172,7 @@ data class SingleShift(var weekday: dayType? = null,
 
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
-            cal.set(Calendar.HOUR, 16)
+            cal.set(Calendar.HOUR_OF_DAY, 16)
             cal.set(Calendar.MINUTE, 0)
 
             val OBtimeStamp = cal.time.time
@@ -172,7 +196,7 @@ data class SingleShift(var weekday: dayType? = null,
 
             val cal = Calendar.getInstance()
             cal.set(Calendar.DAY_OF_MONTH, currentDay)
-            cal.set(Calendar.HOUR, 6)
+            cal.set(Calendar.HOUR_OF_DAY, 6)
             cal.set(Calendar.MINUTE, 0)
 
             var diffTime = (endTime!!-startTime!!)/1000
