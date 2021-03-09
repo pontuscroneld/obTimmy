@@ -2,7 +2,6 @@ package com.example.myapplication
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -13,33 +12,21 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.observe
-import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 
-class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener {
-
-    /*
-   Tutorial för datePicker
-   https://www.youtube.com/watch?v=GmmyCOpIutA&ab_channel=AndroidDevelopers
-    */
+class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener, CoroutineScope by MainScope() {
 
     lateinit var shiftsModel : ShiftsModel
+    lateinit var shiftsadapter : ShiftsAdapter
 
-
-    var startDay = 0
-    var startMonth = 0
-    var startYear = 0
-    var endDay = 0
-    var endMonth = 0
-    var endYear = 0
-
-    var startHour = 0
-    var startMinute = 0
-    var endHour = 0
-    var endMinute = 0
 
     var hour = 0
     var minute = 0
@@ -60,6 +47,16 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        shiftsadapter = ShiftsAdapter(ctx = requireContext())
+        shiftsadapter.loadShifts()
+        shiftsadapter.shiftFrag = this
+
+
+
+        var shiftRV = view.findViewById<RecyclerView>(R.id.shiftsRecView)
+        shiftRV.layoutManager = LinearLayoutManager(context)
+        shiftRV.adapter = shiftsadapter
 
         shiftsModel = ViewModelProvider(this).get(ShiftsModel::class.java)
         val startTimeButton = view.findViewById<Button>(R.id.shiftsStartTimeButton)
@@ -87,22 +84,20 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
         })
 
-
-
         startTimeButton.setOnClickListener{
             isStartTime = true
             getTimeDateCalender()
             var startDP = DatePickerDialog(requireContext())
             startDP.setOnDateSetListener { view, year, month, dayOfMonth ->
 
-                startYear = year
-                startMonth = month
-                startDay = dayOfMonth
+                shiftsModel.startYear = year
+                shiftsModel.startMonth = month
+                shiftsModel.startDay = dayOfMonth
                 val cal = Calendar.getInstance()
                 Log.d("timmydebug", "TZ " + cal.timeZone.toString())
-                cal.set(Calendar.YEAR, startYear)
-                cal.set(Calendar.MONTH, startMonth)
-                cal.set(Calendar.DAY_OF_MONTH, startDay)
+                cal.set(Calendar.YEAR, shiftsModel.startYear)
+                cal.set(Calendar.MONTH, shiftsModel.startMonth)
+                cal.set(Calendar.DAY_OF_MONTH, shiftsModel.startDay)
 
                 var startTD = TimePickerDialog(context, this, hour, minute, true)
 
@@ -119,21 +114,37 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             getTimeDateCalender()
             var startDP = DatePickerDialog(requireContext())
             startDP.setOnDateSetListener { view, year, month, dayOfMonth ->
-                endYear = year
-                endMonth = month
-                endDay = dayOfMonth
+                shiftsModel.endYear = year
+                shiftsModel.endMonth = month
+                shiftsModel.endDay = dayOfMonth
                 val cal = Calendar.getInstance()
                 //cal.set(savedHour, savedMinute)
-                cal.set(Calendar.YEAR, endYear)
-                cal.set(Calendar.MONTH, endMonth)
-                cal.set(Calendar.DAY_OF_MONTH, endDay)
+                cal.set(Calendar.YEAR, shiftsModel.endYear)
+                cal.set(Calendar.MONTH, shiftsModel.endMonth)
+                cal.set(Calendar.DAY_OF_MONTH, shiftsModel.endDay)
                 var startTD = TimePickerDialog(context, this, hour, minute, true)
                 startTD.show()
             }
             startDP.show()
         }
 
+        val updateButton = view.findViewById<Button>(R.id.shiftUpdateButton)
+        updateButton.setOnClickListener {
+            shiftsadapter.loadShifts()
+        }
+
+        val resetButton = view.findViewById<Button>(R.id.resetButton)
+        resetButton.setOnClickListener {
+
+            launch(Dispatchers.IO){
+                shiftsModel.database.shiftDB.ShiftDao().nukeTable()
+                shiftsadapter.loadShifts()
+            }
+
+        }
+
     }
+
 
     private fun getTimeDateCalender(){
 
@@ -152,19 +163,17 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
     override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
 
-
-
         if(isStartTime){
-            startHour = hourOfDay
-            startMinute = minute
+            shiftsModel.startHour = hourOfDay
+            shiftsModel.startMinute = minute
             val cal = Calendar.getInstance()
             Log.d("timmydebug", "TZ " + cal.timeZone.toString())
 
-            cal.set(Calendar.YEAR, startYear)
-            cal.set(Calendar.MONTH, startMonth)
-            cal.set(Calendar.DAY_OF_MONTH, startDay)
-            cal.set(Calendar.HOUR_OF_DAY, startHour)
-            cal.set(Calendar.MINUTE, startMinute)
+            cal.set(Calendar.YEAR, shiftsModel.startYear)
+            cal.set(Calendar.MONTH, shiftsModel.startMonth)
+            cal.set(Calendar.DAY_OF_MONTH, shiftsModel.startDay)
+            cal.set(Calendar.HOUR_OF_DAY, shiftsModel.startHour)
+            cal.set(Calendar.MINUTE, shiftsModel.startMinute)
             cal.set(Calendar.SECOND, 0)
             cal.set(Calendar.MILLISECOND, 0)
             val startStamp = cal.timeInMillis
@@ -172,23 +181,22 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm zz")
             val dateString = simpleDateFormat.format(cal.time)
 
-
-            Log.d("timmydebug", startHour.toString() + " " + startMinute.toString())
+            Log.d("timmydebug", shiftsModel.startHour.toString() + " " + shiftsModel.startMinute.toString())
             Log.d("timmydebug", "Start time set to " + startStamp.toString())
             Log.d("timmydebug", "As a date: " + dateString)
 
 
 
         } else {
-            endHour = hourOfDay
-            endMinute = minute
+            shiftsModel.endHour = hourOfDay
+            shiftsModel.endMinute = minute
             val cal = Calendar.getInstance()
             //cal.set(savedHour, savedMinute)
-            cal.set(Calendar.YEAR, endYear)
-            cal.set(Calendar.MONTH, endMonth)
-            cal.set(Calendar.DAY_OF_MONTH, endDay)
-            cal.set(Calendar.HOUR_OF_DAY, endHour)
-            cal.set(Calendar.MINUTE, endMinute)
+            cal.set(Calendar.YEAR, shiftsModel.endYear)
+            cal.set(Calendar.MONTH, shiftsModel.endMonth)
+            cal.set(Calendar.DAY_OF_MONTH, shiftsModel.endDay)
+            cal.set(Calendar.HOUR_OF_DAY, shiftsModel.endHour)
+            cal.set(Calendar.MINUTE, shiftsModel.endMinute)
             cal.set(Calendar.SECOND, 0)
             cal.set(Calendar.MILLISECOND, 0)
 
@@ -197,67 +205,24 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
             val dateString = simpleDateFormat.format(endStamp)
 
-
-
             Log.d("timmydebug", "End time set to " + endStamp.toString())
             Log.d("timmydebug", "As a date: " + dateString)
 
-            cal.set(Calendar.YEAR, startYear)
-            cal.set(Calendar.MONTH, startMonth)
-            cal.set(Calendar.DAY_OF_MONTH, startDay)
-            cal.set(Calendar.HOUR_OF_DAY, startHour)
-            cal.set(Calendar.MINUTE, startMinute)
+            cal.set(Calendar.YEAR, shiftsModel.startYear)
+            cal.set(Calendar.MONTH, shiftsModel.startMonth)
+            cal.set(Calendar.DAY_OF_MONTH, shiftsModel.startDay)
+            cal.set(Calendar.HOUR_OF_DAY, shiftsModel.startHour)
+            cal.set(Calendar.MINUTE, shiftsModel.startMinute)
             cal.set(Calendar.SECOND, 0)
             cal.set(Calendar.MILLISECOND, 0)
 
             val startStamp = cal.timeInMillis
 
             shiftsModel.calcDuration(startStamp, endStamp)
-            //calcDurationInFrag()
+
         }
-
     }
-
-    fun calcDurationInFrag()
-    {
-
-        Log.d("timmydebug", "Running fun calcDurationInFrag in ShiftsFragment")
-
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.YEAR, startYear)
-        cal.set(Calendar.MONTH, startMonth)
-        cal.set(Calendar.DAY_OF_MONTH, startDay)
-        cal.set(Calendar.HOUR, startHour)
-        cal.set(Calendar.MINUTE, startMinute)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-
-        val startStamp = cal.timeInMillis
-
-        cal.set(Calendar.YEAR, endYear)
-        cal.set(Calendar.MONTH, endMonth)
-        cal.set(Calendar.DAY_OF_MONTH, endDay)
-        cal.set(Calendar.HOUR, endHour)
-        cal.set(Calendar.MINUTE, endMinute)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-
-        val endStamp = cal.timeInMillis
-
-        Log.d("timmydebug", endStamp.toString() + " is the same still?")
-
-        shiftsModel.calcDuration(startStamp, endStamp)
-
-        shiftsModel.getDateInfo().observe(this) {
-            Log.d("timmydebug", it)
-        }
-
-
-    }
-
-
-
-
+}
 
 
     /*
@@ -271,4 +236,3 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
  */
 
 
-}

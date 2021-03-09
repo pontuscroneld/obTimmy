@@ -12,12 +12,22 @@ import java.text.SimpleDateFormat
 
 class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by MainScope() {
 
-    private val database = DatabaseModel(app)
-
-
+    val database = DatabaseModel(app)
     private var VMdateInfo = MutableLiveData<String>()
 
     var hourlyWage = 1
+
+    var startDay = 0
+    var startMonth = 0
+    var startYear = 0
+    var endDay = 0
+    var endMonth = 0
+    var endYear = 0
+
+    var startHour = 0
+    var startMinute = 0
+    var endHour = 0
+    var endMinute = 0
 
     fun getDateInfo() : LiveData<String>
     {
@@ -189,8 +199,13 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
             newShift.shiftEarnings = newShift.getShiftEarnings(hourlyWage.toDouble())
             newShift.obEarnings = newShift.getOBHoursHandels(hourlyWage.toDouble())
             newShift.date = dateString
+            newShift.readableTime = newShift.getReadableTimePeriod(startMonth, startDay, startHour,startMinute, endHour, endMinute)
+
 
             database.shiftDB.ShiftDao().insertAll(newShift)
+
+
+            Log.d("timmydebug", "Added to db")
 
         }
 

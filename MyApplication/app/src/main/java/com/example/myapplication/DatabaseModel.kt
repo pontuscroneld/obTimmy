@@ -4,11 +4,10 @@ package com.example.myapplication
 import android.content.Context
 import android.util.Log
 import androidx.room.*
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import java.text.SimpleDateFormat
 import java.util.*
 
-class DatabaseModel(ctx : Context)
+class DatabaseModel(ctx: Context)
 {
     lateinit var shiftDB : ShiftDatabase
 
@@ -32,11 +31,12 @@ class DatabaseModel(ctx : Context)
             @ColumnInfo(name = "day_of_the_week") var dayOfTheWeek: String? = null,
             @ColumnInfo(name = "weekday") var weekday: dayType = dayType.notHoliday,
             @ColumnInfo(name = "shift_earnings") var shiftEarnings: Double? = null,
-            @ColumnInfo(name = "ob_earnings") var obEarnings: Double? = null
+            @ColumnInfo(name = "ob_earnings") var obEarnings: Double? = null,
+            @ColumnInfo(name = "readable_time") var readableTime: String? = null
 
     ) {
 
-        fun getShiftEarnings(hourlyWage : Double) : Double {
+        fun getShiftEarnings(hourlyWage: Double) : Double {
             var diffTime = (endTime!!-startTime!!)/1000
 
             // Diff time är tiden man jobbar i sekunder
@@ -154,9 +154,7 @@ class DatabaseModel(ctx : Context)
 
         }
 
-        fun getOBHoursRest() : Double
-
-        {
+        fun getOBHoursRest() : Double {
             val cal = Calendar.getInstance()
             cal.time.time = startTime!!
             val currentDay = cal[Calendar.DAY_OF_MONTH]
@@ -230,7 +228,50 @@ class DatabaseModel(ctx : Context)
             return 0.0
         }
 
+        fun getReadableTimePeriod(sMon : Int,sD : Int, sH : Int, sMin : Int, eH : Int, eMin : Int) : String{
 
+            var sMonString = ""
+            var sDayString = ""
+            var sHourString = ""
+            var sMinString = ""
+            var eHourString = ""
+            var eMinString = ""
+
+            if(sMon < 10){
+                sMonString = "0" + sMon.toString()
+            } else{
+                sMonString = sMon.toString()
+            }
+
+            if(sD < 10){
+                sDayString = "0" + sD.toString()
+            } else{
+                sDayString = sD.toString()
+            }
+            if(sH < 10){
+                sHourString = "0" + sH.toString()
+            } else{
+                sHourString = sH.toString()
+            }
+            if(sMin < 10){
+                sMinString = "0" + sMin.toString()
+            } else{
+                sMinString = sMin.toString()
+            }
+            if(eH < 10){
+                eHourString = "0" + eH.toString()
+            } else{
+                eHourString = eH.toString()
+            }
+            if(eMin < 10){
+                eMinString = "0" + eMin.toString()
+            } else{
+                eMinString = eMin.toString()
+            }
+
+            var readableText = sDayString + "/" + sMonString + " " + sHourString + ":" + sMinString + " - " + eHourString + ":" + eMinString
+            return readableText
+        }
     }
 
     @Dao
@@ -247,9 +288,12 @@ class DatabaseModel(ctx : Context)
 
         @Insert
         fun insertAll(shift: SingleShift2)
+
+        @Query("DELETE FROM singleshift2")
+        fun nukeTable()
     }
 
-    @Database(entities = arrayOf(SingleShift2::class), version = 2)
+    @Database(entities = arrayOf(SingleShift2::class), version = 3)
     @TypeConverters(Converters::class)
     abstract class ShiftDatabase : RoomDatabase() {
         abstract fun ShiftDao(): ShiftDao
