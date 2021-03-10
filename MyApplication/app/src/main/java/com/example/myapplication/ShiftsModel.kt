@@ -1,7 +1,9 @@
 package com.example.myapplication
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.*
 import com.google.gson.Gson
 import kotlinx.coroutines.*
@@ -15,7 +17,9 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
     val database = DatabaseModel(app)
     private var VMdateInfo = MutableLiveData<String>()
 
-    var hourlyWage = 1
+    private val errorMessage = MutableLiveData<String>()
+
+    var hourlyWage = 0
 
     var startDay = 0
     var startMonth = 0
@@ -29,14 +33,12 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
     var endHour = 0
     var endMinute = 0
 
-    fun getDateInfo() : LiveData<String>
-    {
+    fun getDateInfo(): LiveData<String> {
         return VMdateInfo
     }
 
 
-    fun loadDate(chosenDate : Long, endDate : Long)
-    {
+    fun loadDate(chosenDate: Long, endDate: Long) {
         launch {
             Log.d("timmydebug", "Running fun loadDate in ShiftsModel")
 
@@ -45,21 +47,10 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
 
             val firstDate = loadapi(dateString)
 
-            if(firstDate.datum == null)
-            {
+            if (firstDate.datum == null) {
                 //errorString.value = "Felaktig start"
                 return@launch
             }
-/*
-            val toStop = loadapi(toText)
-            Log.d("pia9debug", toStop.name)
-
-            if(toStop.id == "")
-            {
-                errorString.value = "Felaktig slut"
-                return@launch
-            }
-*/
 
             var dateText = ""
 
@@ -83,18 +74,28 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
                 dateText += firstDate.helgdag
             }
 
+            Log.d("timmydebug", dateText)
+            Log.d("timmydebug", chosenDate.toString() + endDate.toString())
             VMdateInfo.value = dateText
 
-            createShift(chosenDate, endDate, firstDate.datum, firstDate.veckodag, firstDate.rodDag, firstDate.helgdag)
+            createShift(
+                chosenDate,
+                endDate,
+                firstDate.datum,
+                firstDate.veckodag,
+                firstDate.rodDag,
+                firstDate.helgdag
+            )
 
-            //TODO("HÄR HAR JAG FÅTT ALL INFORMATION JAG BEHÖVER OM SKIFTET INNAN JAG KAN RÄKNA UT OB")
 
         }
     }
 
+    fun getErrormessage(): LiveData<String> {
+        return errorMessage
+    }
 
-
-    private suspend fun loadapi(dateString : String) : apiDateInfo {
+    private suspend fun loadapi(dateString: String): apiDateInfo {
 
         Log.d("timmydebug", "Running fun loadapi in ShiftsModel")
 
@@ -109,9 +110,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
             }
 
             val reader = BufferedReader(theConnection.inputStream.reader())
-
             val theResultString = reader.readText()
-
             val theInfo = Gson().fromJson(theResultString, apiDays::class.java)
 
             return@withContext theInfo.dagar[0]
@@ -120,53 +119,52 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
         }
     }
 
-        fun calcDuration(startStamp : Long, endStamp : Long){
 
-            Log.d("timmydebug", "Running fun calcDuration in ShiftsModel")
-            if(startStamp > endStamp)
-            {
+    fun calcDuration(startStamp: Long, endStamp: Long) {
 
-                Log.d("timmydebug", startStamp.toString() + " is bigger than " + endStamp.toString())
-                Log.d("timmydebug", "Slutdatum är före startdatum.")
-            } else {
+        Log.d("timmydebug", "Running fun calcDuration in ShiftsModel")
+        if (startStamp > endStamp) {
 
-                var diffTime = (endStamp-startStamp)/1000
+            errorMessage.value = "Slutdatum är före startdatum."
 
-                // Diff time är tiden man jobbar i sekunder
+            Log.d("timmydebug", "Slutdatum är före startdatum.")
+        } else {
 
-                var diffTimeInMinutes = diffTime / 60
-                val diffTimeInHours = diffTime / 3600
-                val minutesMinusHours = diffTimeInMinutes - (diffTimeInHours * 60)
+            var diffTime = (endStamp - startStamp) / 1000
 
-                var minuteWage = hourlyWage.toDouble()/60
+            // Diff time är tiden man jobbar i sekunder
 
+            var diffTimeInMinutes = diffTime / 60
+            val diffTimeInHours = diffTime / 3600
+            val minutesMinusHours = diffTimeInMinutes - (diffTimeInHours * 60)
 
-                var earnings = (diffTimeInHours * hourlyWage) + (minutesMinusHours * minuteWage )
-                //Log.d("timmydebug", "Timlön för " + diffTimeInHours + " timmar + " + minutesMinusHours + " minuter blir " + earnings + "kr")
+            var minuteWage = hourlyWage.toDouble() / 60
+            var earnings = (diffTimeInHours * hourlyWage) + (minutesMinusHours * minuteWage)
 
-                //TODO("HÄR HAR JAG RÄKNAT UT ANTAL TIMMAR PÅ ETT ARBETSPASS OCH HUR MYCKET MAN TJÄNAR PÅ DET" + "NU BEHÖVER JAG KOPPA DETTA TILL RÄKNA OB FUNKTIONERNA I SINGLE SHIFT")
+            loadDate(startStamp, endStamp)
 
-                loadDate(startStamp, endStamp)
-
-            }
         }
+    }
 
-    fun createShift(startTime : Long, endTime : Long, date: String, dayOfTheWeek : String, redDay : String, holiday : String?){
-
-        //TODO("HUR SKA JAG SÄTTA IHOP ALL INFORMATION TILL EN FIL AV DATAKLASSEN SINGLE SHIFT?")
+    fun createShift(
+        startTime: Long,
+        endTime: Long,
+        date: String,
+        dayOfTheWeek: String,
+        redDay: String,
+        holiday: String?
+    ) {
 
         var newShift = DatabaseModel.SingleShift2()
 
-        Log.d("timmydebug", "Running fun createShift in ShiftsModel")
-
-        if(redDay == "Ja"){
+        if (redDay == "Ja") {
             // Daytype är Holiday
             newShift.weekday = dayType.holidayDay
         }
 
-        if(holiday == null && redDay == "Nej") {
+        if (holiday == null && redDay == "Nej") {
 
-            if(dayOfTheWeek == "Lördag"){
+            if (dayOfTheWeek == "Lördag") {
                 newShift.weekday = dayType.holidayEve
                 // Daytype är holidayEve
             } else {
@@ -175,46 +173,62 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
             }
         }
 
-        if(holiday != null && redDay == "Nej"){
+        if (holiday != null && redDay == "Nej") {
             //Daytype är holidayEve
             newShift.weekday = dayType.holidayEve
         }
 
 
         val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd")
-        val extendedFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
         val dateString = simpleDateFormat.format(startTime)
-        var extDateString = extendedFormat.format(startTime)
 
-        Log.d("timmydebug", "Starttime: " + startTime.toString() + " is it the same as " + extDateString )
 
-        extDateString = extendedFormat.format(endTime)
-        Log.d("timmydebug", "Starttime: " + endTime.toString() + " is it the same as " + extDateString )
-
-        launch(Dispatchers.IO){
-            newShift.shiftDuration = (endTime - startTime) /1000/60
+        launch(Dispatchers.IO) {
+            newShift.shiftDuration = (endTime - startTime) / 1000 / 60
             newShift.startTime = startTime
             newShift.endTime = endTime
             newShift.dayOfTheWeek = dayOfTheWeek
             newShift.shiftEarnings = newShift.getShiftEarnings(hourlyWage.toDouble())
             newShift.obEarnings = newShift.getOBHoursHandels(hourlyWage.toDouble())
             newShift.date = dateString
-            newShift.readableTime = newShift.getReadableTimePeriod(startMonth, startDay, startHour,startMinute, endHour, endMinute)
-
+            newShift.readableTime = newShift.getReadableTimePeriod(
+                startMonth,
+                startDay,
+                startHour,
+                startMinute,
+                endHour,
+                endMinute
+            )
 
             database.shiftDB.ShiftDao().insertAll(newShift)
-
-
-            Log.d("timmydebug", "Added to db")
-
+            Log.d("timmydebug", newShift.toString())
         }
 
 
 
-        Log.d("timmydebug", newShift.toString())
-
     }
 
+    suspend fun calculateSumOfEarnings(): Double {
+
+        var allShiftEarnings = 0.0
+        var allObEarnings = 0.0
+        var totalEarnings = 0.0
+
+        return withContext(Dispatchers.IO) {
+
+            var listOfShifts = database.shiftDB.ShiftDao().loadAll()
+
+            for (shift in listOfShifts) {
+                Log.d("10Marchdebug", shift.readableTime!!)
+                Log.d("10Marchdebug", "This shift is worth: " + shift.shiftEarnings.toString())
+                totalEarnings = totalEarnings + shift.shiftEarnings!!
+                Log.d("10Marchdebug", "Total earnings are: " + totalEarnings.toString())
+            }
+
+            return@withContext totalEarnings
+
+        }
+    }
 }
 
 class Factory(val app: Application) : ViewModelProvider.Factory {
