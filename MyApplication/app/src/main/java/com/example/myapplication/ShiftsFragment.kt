@@ -2,6 +2,7 @@ package com.example.myapplication
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -20,13 +21,16 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import android.content.SharedPreferences
 
 
 class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener, CoroutineScope by MainScope() {
 
     lateinit var shiftsModel : ShiftsModel
     lateinit var shiftsadapter : ShiftsAdapter
+    lateinit var sharedPreferences: SharedPreferences
 
+    var sliderValue = 0
 
     var hour = 0
     var minute = 0
@@ -52,6 +56,9 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         shiftsadapter.loadShifts()
         shiftsadapter.shiftFrag = this
 
+        var savedWage = loadWageData()
+
+        view.findViewById<TextView>(R.id.shiftsWageTV).text = "Timlön: " + savedWage.toInt()
 
 
         var shiftRV = view.findViewById<RecyclerView>(R.id.shiftsRecView)
@@ -63,6 +70,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
         var wageSlider = view.findViewById<SeekBar>(R.id.shiftsSliderBar)
         wageSlider.max = 250
+        wageSlider.progress = savedWage
 
 
 
@@ -71,6 +79,8 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
                 Log.d("timmydebug", progress.toString())
                 view.findViewById<TextView>(R.id.shiftsWageTV).text = "Timlön: " + progress
                 shiftsModel.hourlyWage = progress
+                sliderValue = progress
+
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -83,6 +93,15 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             }
 
         })
+
+        val wageSwitch = view.findViewById<Switch>(R.id.shiftsWageSwitch)
+        wageSwitch.setOnClickListener {
+
+            if(wageSwitch.isChecked){
+                saveWageData()
+            }
+
+        }
 
         startTimeButton.setOnClickListener{
             isStartTime = true
@@ -220,8 +239,34 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
             shiftsModel.calcDuration(startStamp, endStamp)
 
+
         }
     }
+
+    fun saveWageData(){
+
+        sharedPreferences = this.requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.apply{
+            putInt("Wage", sliderValue!!)
+            putBoolean("SwitchBool", true)
+        }.apply()
+
+        Toast.makeText(this.getActivity(), "Timlön sparad", Toast.LENGTH_SHORT).show()
+    }
+
+    fun loadWageData() : Int {
+
+        sharedPreferences = this.requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+        val savedInt = sharedPreferences.getInt("Wage", 0)
+        val savedBoolean = sharedPreferences.getBoolean("SwitchBool", false)
+
+        view?.findViewById<Switch>(R.id.shiftsWageSwitch)!!.isChecked = savedBoolean
+
+       return savedInt
+
+    }
+
 }
 
 
