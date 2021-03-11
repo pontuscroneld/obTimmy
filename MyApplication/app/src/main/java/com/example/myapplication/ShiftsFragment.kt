@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
@@ -27,11 +28,10 @@ import org.w3c.dom.Text
 
 class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener, CoroutineScope by MainScope() {
 
+    lateinit var databaseModel : DatabaseModel
     lateinit var shiftsModel : ShiftsModel
     lateinit var shiftsadapter : ShiftsAdapter
     lateinit var sharedPreferences: SharedPreferences
-
-
 
     var sliderValue = 0
 
@@ -55,13 +55,14 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        databaseModel = DatabaseModel(requireContext())
         shiftsModel = ViewModelProvider(this).get(ShiftsModel::class.java)
+        shiftsModel.database = databaseModel
         shiftsadapter = ShiftsAdapter(ctx = requireContext())
-        shiftsadapter.loadShifts()
+        shiftsModel.getAllShifts()
         shiftsadapter.shiftFrag = this
 
         var savedWage = loadWageData()
-
 
         if(savedWage != 0){
             view.findViewById<SeekBar>(R.id.shiftsSliderBar).isEnabled = false
@@ -124,7 +125,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             }
 
         }
-
+        // START TIME BUTTON
         startTimeButton.setOnClickListener{
             isStartTime = true
             getTimeDateCalender()
@@ -147,7 +148,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             startDP.show()
 
         }
-
+        // END TIME BUTTON
         val endTimeButton = view.findViewById<Button>(R.id.shiftsEndTimeButton)
 
         endTimeButton.setOnClickListener{
@@ -169,21 +170,19 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             startDP.show()
         }
 
+        // UPDATE BUTTON
         val updateButton = view.findViewById<Button>(R.id.shiftUpdateButton)
         updateButton.setOnClickListener {
-            shiftsadapter.loadShifts()
+            shiftsModel.getAllShifts()
         }
-
+        // RESET BUTTON
         val resetButton = view.findViewById<Button>(R.id.resetButton)
         resetButton.setOnClickListener {
 
-            launch(Dispatchers.IO){
-                shiftsModel.database.shiftDB.ShiftDao().nukeTable()
-                shiftsadapter.loadShifts()
-            }
+            shiftsModel.deleteAllShifts(requireContext())
 
         }
-
+        // CALCULATE BUTTON
         val calcButton = view.findViewById<Button>(R.id.shiftsTotalButton)
         calcButton.setOnClickListener {
 
@@ -197,6 +196,15 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         shiftsModel.getErrormessage().observe(viewLifecycleOwner, {
             Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
         })
+
+        databaseModel.liveDataShiftList.observe(viewLifecycleOwner, { allShifts ->
+
+            shiftsadapter.shiftitems = allShifts
+            shiftsadapter.notifyDataSetChanged()
+            Log.d("timmydebug", "Data set changed")
+        })
+
+        shiftsModel.getAllShifts()
 
     }
 
@@ -240,8 +248,6 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             Log.d("timmydebug", "Start time set to " + startStamp.toString())
             Log.d("timmydebug", "As a date: " + dateString)
 
-
-
         } else {
             shiftsModel.endHour = hourOfDay
             shiftsModel.endMinute = minute
@@ -275,7 +281,6 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
             shiftsModel.calcDuration(startStamp, endStamp)
 
-
         }
     }
 
@@ -302,11 +307,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         return savedInt
 
     }
-
-
-
 }
-
 
     /*
         shiftsModel = ViewModelProvider(this).get(ShiftsModel::class.java)

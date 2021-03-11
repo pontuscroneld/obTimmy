@@ -3,6 +3,7 @@ package com.example.myapplication
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.room.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -10,6 +11,7 @@ import java.util.*
 class DatabaseModel(ctx: Context)
 {
     lateinit var shiftDB : ShiftDatabase
+    var liveDataShiftList = MutableLiveData<List<SingleShift2>>()
 
     init {
 
@@ -17,6 +19,8 @@ class DatabaseModel(ctx: Context)
                 ctx,
                 ShiftDatabase::class.java, "shifts-database"
         ).build()
+
+
     }
 
 

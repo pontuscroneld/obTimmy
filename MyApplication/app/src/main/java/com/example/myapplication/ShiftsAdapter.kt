@@ -14,16 +14,8 @@ class ShiftsAdapter(ctx : Context) : RecyclerView.Adapter<MyViewHolder>(), Corou
     var shiftdb = DatabaseModel(ctx)
     var shiftitems : List<DatabaseModel.SingleShift2>? = null
 
-    fun loadShifts()
-    {
-        launch(Dispatchers.IO) {
-            shiftitems = shiftdb.shiftDB.ShiftDao().loadAll()
+    //var sortedShiftItems = shiftitems?.sortedBy { DatabaseModel.SingleShift2. }
 
-            launch(Dispatchers.Main) {
-                notifyDataSetChanged()
-            }
-        }
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val vh = MyViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.shift_item, parent, false))

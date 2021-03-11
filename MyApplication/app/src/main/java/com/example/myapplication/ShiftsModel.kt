@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.util.Log
@@ -14,9 +15,9 @@ import java.text.SimpleDateFormat
 
 class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by MainScope() {
 
-    val database = DatabaseModel(app)
+    lateinit var database : DatabaseModel
     private var VMdateInfo = MutableLiveData<String>()
-
+    lateinit var shiftsadapter : ShiftsAdapter
     private val errorMessage = MutableLiveData<String>()
 
     var hourlyWage = 0
@@ -37,6 +38,47 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
         return VMdateInfo
     }
 
+    fun getAllShifts()
+    {
+        Log.d("timmydebug", "Running getAllShifts")
+
+        launch(Dispatchers.IO){
+            var allTheShifts = database.shiftDB.ShiftDao().loadAll()
+
+            allTheShifts = allTheShifts.sortedBy { it.startTime }
+
+            launch(Dispatchers.Main){
+                database.liveDataShiftList.value = allTheShifts
+            }
+        }
+    }
+/*
+    fun deleteCategory(deleteCat : Category)
+    {
+        launch(Dispatchers.IO) {
+            db.categoryDao().delete(deleteCat)
+            getCategories()
+        }
+    }
+
+ */
+
+    fun deleteAllShifts(ctx : Context){
+
+        val builder = AlertDialog.Builder(ctx)
+        builder.setTitle("Vill du tömma listan?")
+
+        builder.setPositiveButton("Ja") { dialog, which ->
+            launch(Dispatchers.IO){
+                database.shiftDB.ShiftDao().nukeTable()
+                shiftsadapter = ShiftsAdapter(ctx)
+                getAllShifts()
+            }
+        }
+        builder.setNegativeButton("Nej") { dialog, which ->
+        }
+        builder.show()
+    }
 
     fun loadDate(chosenDate: Long, endDate: Long) {
         launch {
@@ -202,6 +244,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
 
             database.shiftDB.ShiftDao().insertAll(newShift)
             Log.d("timmydebug", newShift.toString())
+            getAllShifts()
         }
 
 
