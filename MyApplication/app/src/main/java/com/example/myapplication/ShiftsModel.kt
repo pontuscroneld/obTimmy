@@ -105,17 +105,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
 
         Log.d("timmydebug", "End time set to " + endStamp.toString())
         Log.d("timmydebug", "As a date: " + dateString)
-/*
-        cal.set(Calendar.YEAR, startYear)
-        cal.set(Calendar.MONTH, startMonth)
-        cal.set(Calendar.DAY_OF_MONTH, startDay)
-        cal.set(Calendar.HOUR_OF_DAY, startHour)
-        cal.set(Calendar.MINUTE, startMinute)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
 
-        val startStamp = cal.timeInMillis
-*/
         calcDuration(startStamp, endStamp)
     }
 
@@ -221,6 +211,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
 
         val builder = AlertDialog.Builder(ctx)
         builder.setTitle("Vill du tömma listan?")
+        builder.setMessage("Detta kommer att radera alla pass du har registrerat.")
 
         builder.setPositiveButton("Ja") { dialog, which ->
             launch(Dispatchers.IO){
@@ -232,6 +223,14 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
         builder.setNegativeButton("Nej") { dialog, which ->
         }
         builder.show()
+    }
+
+    fun deleteSingleShift(deleteShift : DatabaseModel.SingleShift2)
+    {
+        launch(Dispatchers.IO) {
+            database.shiftDB.ShiftDao().delete(deleteShift)
+            getAllShifts()
+        }
     }
 
     suspend fun calculateSumOfEarnings(): Double {

@@ -1,9 +1,11 @@
 package com.example.myapplication
 
+import android.app.AlertDialog
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.*
@@ -12,6 +14,7 @@ class ShiftsAdapter(ctx : Context) : RecyclerView.Adapter<MyViewHolder>(), Corou
 
     lateinit var shiftFrag : ShiftsFragment
     var shiftdb = DatabaseModel(ctx)
+
     var shiftitems : List<DatabaseModel.SingleShift2>? = null
 
     //var sortedShiftItems = shiftitems?.sortedBy { DatabaseModel.SingleShift2. }
@@ -36,6 +39,23 @@ class ShiftsAdapter(ctx : Context) : RecyclerView.Adapter<MyViewHolder>(), Corou
         holder.dateText.text = currentItem.readableTime
         holder.dayOfTheWeekText.text = currentItem.dayOfTheWeek
 
+        holder.deleteButton.setOnClickListener {
+
+            val builder = AlertDialog.Builder(holder.itemView.context)
+            builder.setMessage("Vill du radera det här skiftet?")
+
+
+            builder.setPositiveButton("Ja") { dialog, which ->
+                shiftFrag.shiftsModel.deleteSingleShift(currentItem)
+            }
+
+            builder.setNegativeButton("Nej") { dialog, which ->
+
+            }
+
+            builder.show()
+        }
+
     }
 
 }
@@ -44,4 +64,6 @@ class MyViewHolder (view: View) : RecyclerView.ViewHolder(view) {
 
     var dayOfTheWeekText = view.findViewById<TextView>(R.id.shiftItemDay)
     var dateText = view.findViewById<TextView>(R.id.shiftItemDate)
+    var deleteButton = view.findViewById<Button>(R.id.shiftItemDeleteButton)
+
 }

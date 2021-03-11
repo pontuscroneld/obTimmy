@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -114,8 +115,16 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
                 wageSwitch.text = "Ändra"
 
             } else{
-                wageSlider.isEnabled = true
-                wageSwitch.text = "Spara"
+                val builder = AlertDialog.Builder(requireContext())
+                builder.setTitle("Vill du ändra din timlön?")
+                builder.setMessage("Om du gör det kommer alla nya skift sparas med din nya lön. Alla redan listade skift kommer fortfarande räknas med din gamla.")
+
+                builder.setPositiveButton("Ok!") { dialog, which ->
+                    wageSlider.isEnabled = true
+                    wageSwitch.text = "Spara"
+                }
+                builder.show()
+
             }
 
         }
@@ -127,51 +136,15 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             startDP.setOnDateSetListener { view, year, month, dayOfMonth ->
 
                 shiftsModel.setStartDate(dayOfMonth, month, year)
-                /*
-                shiftsModel.startYear = year
-                shiftsModel.startMonth = month
-                shiftsModel.startDay = dayOfMonth
-                val cal = Calendar.getInstance()
-                Log.d("timmydebug", "TZ " + cal.timeZone.toString())
-                cal.set(Calendar.YEAR, shiftsModel.startYear)
-                cal.set(Calendar.MONTH, shiftsModel.startMonth)
-                cal.set(Calendar.DAY_OF_MONTH, shiftsModel.startDay)
-                */
 
                 var startTD = TimePickerDialog(context, this, shiftsModel.hour, shiftsModel.minute, true)
-
+                startTD.setTitle("Start")
                 startTD.show()
             }
             startDP.show()
 
         }
-        // END TIME BUTTON
-        val endTimeButton = view.findViewById<Button>(R.id.shiftsEndTimeButton)
 
-        endTimeButton.setOnClickListener{
-            isStartTime = false
-            shiftsModel.getTimeDateCalender()
-            var startDP = DatePickerDialog(requireContext())
-            startDP.setOnDateSetListener { view, year, month, dayOfMonth ->
-                shiftsModel.endYear = year
-                shiftsModel.endMonth = month
-                shiftsModel.endDay = dayOfMonth
-                val cal = Calendar.getInstance()
-                //cal.set(savedHour, savedMinute)
-                cal.set(Calendar.YEAR, shiftsModel.endYear)
-                cal.set(Calendar.MONTH, shiftsModel.endMonth)
-                cal.set(Calendar.DAY_OF_MONTH, shiftsModel.endDay)
-                var startTD = TimePickerDialog(context, this, shiftsModel.hour, shiftsModel.minute, true)
-                startTD.show()
-            }
-            startDP.show()
-        }
-
-        // UPDATE BUTTON
-        val updateButton = view.findViewById<Button>(R.id.shiftUpdateButton)
-        updateButton.setOnClickListener {
-            shiftsModel.getAllShifts()
-        }
         // RESET BUTTON
         val resetButton = view.findViewById<Button>(R.id.resetButton)
         resetButton.setOnClickListener {
@@ -207,6 +180,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
     fun pickEndTime(){
         var endTD = TimePickerDialog(requireContext(), this, shiftsModel.hour, shiftsModel.minute, true)
+        endTD.setTitle("Slut")
         endTD.show()
     }
 
@@ -221,67 +195,10 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             shiftsModel.setStartTime(minute, hourOfDay)
             isStartTime = false
             pickEndTime()
-        /*
-            shiftsModel.startHour = hourOfDay
-            shiftsModel.startMinute = minute
-            val cal = Calendar.getInstance()
-            Log.d("timmydebug", "TZ " + cal.timeZone.toString())
 
-            cal.set(Calendar.YEAR, shiftsModel.startYear)
-            cal.set(Calendar.MONTH, shiftsModel.startMonth)
-            cal.set(Calendar.DAY_OF_MONTH, shiftsModel.startDay)
-            cal.set(Calendar.HOUR_OF_DAY, shiftsModel.startHour)
-            cal.set(Calendar.MINUTE, shiftsModel.startMinute)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            val startStamp = cal.timeInMillis
-
-            val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm zz")
-            val dateString = simpleDateFormat.format(cal.time)
-
-            Log.d("timmydebug", shiftsModel.startHour.toString() + " " + shiftsModel.startMinute.toString())
-            Log.d("timmydebug", "Start time set to " + startStamp.toString())
-            Log.d("timmydebug", "As a date: " + dateString)
-*/
         } else {
             isStartTime = true
             shiftsModel.setEndTime(minute, hourOfDay)
-
-
-
- /*         isFirstTime = true
-            shiftsModel.endHour = hourOfDay
-            shiftsModel.endMinute = minute
-            val cal = Calendar.getInstance()
-            //cal.set(savedHour, savedMinute)
-            cal.set(Calendar.YEAR, shiftsModel.endYear)
-            cal.set(Calendar.MONTH, shiftsModel.endMonth)
-            cal.set(Calendar.DAY_OF_MONTH, shiftsModel.endDay)
-            cal.set(Calendar.HOUR_OF_DAY, shiftsModel.endHour)
-            cal.set(Calendar.MINUTE, shiftsModel.endMinute)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-
-            val endStamp = cal.timeInMillis
-
-            val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
-            val dateString = simpleDateFormat.format(endStamp)
-
-            Log.d("timmydebug", "End time set to " + endStamp.toString())
-            Log.d("timmydebug", "As a date: " + dateString)
-
-            cal.set(Calendar.YEAR, shiftsModel.startYear)
-            cal.set(Calendar.MONTH, shiftsModel.startMonth)
-            cal.set(Calendar.DAY_OF_MONTH, shiftsModel.startDay)
-            cal.set(Calendar.HOUR_OF_DAY, shiftsModel.startHour)
-            cal.set(Calendar.MINUTE, shiftsModel.startMinute)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-
-            val startStamp = cal.timeInMillis
-
-            shiftsModel.calcDuration(startStamp, endStamp)
-*/
         }
     }
 
