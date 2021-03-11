@@ -12,6 +12,7 @@ import java.io.BufferedReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
+import java.util.*
 
 class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by MainScope() {
 
@@ -21,6 +22,9 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
     private val errorMessage = MutableLiveData<String>()
 
     var hourlyWage = 0
+
+
+    //////////////CALENDER//////////////////////////////////////////////////////////////////////
 
     var startDay = 0
     var startMonth = 0
@@ -34,50 +38,91 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
     var endHour = 0
     var endMinute = 0
 
+    var hour = 0
+    var minute = 0
+    var day = 0
+    var month = 0
+    var year = 0
+
+    var startStamp = 0L
+    var endStamp = 0L
+
+    fun getTimeDateCalender(){
+
+        var cal = Calendar.getInstance()
+        hour = cal.get(Calendar.HOUR_OF_DAY)
+        minute = cal.get(Calendar.MINUTE)
+        day = cal.get(Calendar.DAY_OF_MONTH)
+        month = cal.get(Calendar.MONTH)
+        year = cal.get(Calendar.YEAR)
+
+    }
+
+    fun setStartDate(setDayOfMonth: Int, setMonth: Int, setYear : Int){
+
+        startYear = setYear
+        startMonth = setMonth
+        startDay = setDayOfMonth
+        val cal = Calendar.getInstance()
+        Log.d("timmydebug", "TZ " + cal.timeZone.toString())
+        cal.set(Calendar.YEAR, startYear)
+        cal.set(Calendar.MONTH, startMonth)
+        cal.set(Calendar.DAY_OF_MONTH, startDay)
+    }
+
+    fun setStartTime(setMinute: Int, setHour: Int) {
+        startHour = setHour
+        startMinute = setMinute
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.YEAR, startYear)
+        cal.set(Calendar.MONTH, startMonth)
+        cal.set(Calendar.DAY_OF_MONTH, startDay)
+        cal.set(Calendar.HOUR_OF_DAY, startHour)
+        cal.set(Calendar.MINUTE, startMinute)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        startStamp = cal.timeInMillis
+
+    }
+
+    fun setEndTime(setMinute: Int, setHour: Int) {
+        endHour = setHour
+        endMinute = setMinute
+        val cal = Calendar.getInstance()
+        Log.d("timmydebug", "TZ " + cal.timeZone.toString())
+
+        cal.set(Calendar.YEAR, startYear)
+        cal.set(Calendar.MONTH, startMonth)
+        cal.set(Calendar.DAY_OF_MONTH, startDay)
+        cal.set(Calendar.HOUR_OF_DAY, endHour)
+        cal.set(Calendar.MINUTE, endMinute)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        endStamp = cal.timeInMillis
+
+        val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
+        val dateString = simpleDateFormat.format(endStamp)
+
+        Log.d("timmydebug", "End time set to " + endStamp.toString())
+        Log.d("timmydebug", "As a date: " + dateString)
+/*
+        cal.set(Calendar.YEAR, startYear)
+        cal.set(Calendar.MONTH, startMonth)
+        cal.set(Calendar.DAY_OF_MONTH, startDay)
+        cal.set(Calendar.HOUR_OF_DAY, startHour)
+        cal.set(Calendar.MINUTE, startMinute)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+
+        val startStamp = cal.timeInMillis
+*/
+        calcDuration(startStamp, endStamp)
+    }
+
+    //////////////API//////////////////////////////////////////////////////////////////////
+
     fun getDateInfo(): LiveData<String> {
         return VMdateInfo
-    }
-
-    fun getAllShifts()
-    {
-        Log.d("timmydebug", "Running getAllShifts")
-
-        launch(Dispatchers.IO){
-            var allTheShifts = database.shiftDB.ShiftDao().loadAll()
-
-            allTheShifts = allTheShifts.sortedBy { it.startTime }
-
-            launch(Dispatchers.Main){
-                database.liveDataShiftList.value = allTheShifts
-            }
-        }
-    }
-/*
-    fun deleteCategory(deleteCat : Category)
-    {
-        launch(Dispatchers.IO) {
-            db.categoryDao().delete(deleteCat)
-            getCategories()
-        }
-    }
-
- */
-
-    fun deleteAllShifts(ctx : Context){
-
-        val builder = AlertDialog.Builder(ctx)
-        builder.setTitle("Vill du tömma listan?")
-
-        builder.setPositiveButton("Ja") { dialog, which ->
-            launch(Dispatchers.IO){
-                database.shiftDB.ShiftDao().nukeTable()
-                shiftsadapter = ShiftsAdapter(ctx)
-                getAllShifts()
-            }
-        }
-        builder.setNegativeButton("Nej") { dialog, which ->
-        }
-        builder.show()
     }
 
     fun loadDate(chosenDate: Long, endDate: Long) {
@@ -121,20 +166,14 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
             VMdateInfo.value = dateText
 
             createShift(
-                chosenDate,
-                endDate,
-                firstDate.datum,
-                firstDate.veckodag,
-                firstDate.rodDag,
-                firstDate.helgdag
+                    chosenDate,
+                    endDate,
+                    firstDate.datum,
+                    firstDate.veckodag,
+                    firstDate.rodDag,
+                    firstDate.helgdag
             )
-
-
         }
-    }
-
-    fun getErrormessage(): LiveData<String> {
-        return errorMessage
     }
 
     private suspend fun loadapi(dateString: String): apiDateInfo {
@@ -159,6 +198,67 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
 
 
         }
+    }
+
+    //////////////ROOM//////////////////////////////////////////////////////////////////////
+
+    fun getAllShifts()
+    {
+        Log.d("timmydebug", "Running getAllShifts")
+
+        launch(Dispatchers.IO){
+            var allTheShifts = database.shiftDB.ShiftDao().loadAll()
+
+            allTheShifts = allTheShifts.sortedBy { it.startTime }
+
+            launch(Dispatchers.Main){
+                database.liveDataShiftList.value = allTheShifts
+            }
+        }
+    }
+
+    fun deleteAllShifts(ctx : Context){
+
+        val builder = AlertDialog.Builder(ctx)
+        builder.setTitle("Vill du tömma listan?")
+
+        builder.setPositiveButton("Ja") { dialog, which ->
+            launch(Dispatchers.IO){
+                database.shiftDB.ShiftDao().nukeTable()
+                shiftsadapter = ShiftsAdapter(ctx)
+                getAllShifts()
+            }
+        }
+        builder.setNegativeButton("Nej") { dialog, which ->
+        }
+        builder.show()
+    }
+
+    suspend fun calculateSumOfEarnings(): Double {
+
+        var allShiftEarnings = 0.0
+        var allObEarnings = 0.0
+        var totalEarnings = 0.0
+
+        return withContext(Dispatchers.IO) {
+
+            var listOfShifts = database.shiftDB.ShiftDao().loadAll()
+
+            for (shift in listOfShifts) {
+                Log.d("10Marchdebug", shift.readableTime!!)
+                Log.d("10Marchdebug", "This shift is worth: " + shift.shiftEarnings.toString())
+                totalEarnings = totalEarnings + shift.shiftEarnings!!
+                Log.d("10Marchdebug", "Total earnings are: " + totalEarnings.toString())
+            }
+
+            return@withContext totalEarnings
+        }
+    }
+
+    //////////////LOKALA FUNKTIONER///////////////////////////////////////////////////////////////
+
+    fun getErrormessage(): LiveData<String> {
+        return errorMessage
     }
 
 
@@ -245,31 +345,6 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
             database.shiftDB.ShiftDao().insertAll(newShift)
             Log.d("timmydebug", newShift.toString())
             getAllShifts()
-        }
-
-
-
-    }
-
-    suspend fun calculateSumOfEarnings(): Double {
-
-        var allShiftEarnings = 0.0
-        var allObEarnings = 0.0
-        var totalEarnings = 0.0
-
-        return withContext(Dispatchers.IO) {
-
-            var listOfShifts = database.shiftDB.ShiftDao().loadAll()
-
-            for (shift in listOfShifts) {
-                Log.d("10Marchdebug", shift.readableTime!!)
-                Log.d("10Marchdebug", "This shift is worth: " + shift.shiftEarnings.toString())
-                totalEarnings = totalEarnings + shift.shiftEarnings!!
-                Log.d("10Marchdebug", "Total earnings are: " + totalEarnings.toString())
-            }
-
-            return@withContext totalEarnings
-
         }
     }
 }

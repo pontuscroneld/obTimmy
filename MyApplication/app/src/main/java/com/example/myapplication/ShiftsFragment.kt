@@ -35,12 +35,6 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
     var sliderValue = 0
 
-    var hour = 0
-    var minute = 0
-    var day = 0
-    var month = 0
-    var year = 0
-
     var isStartTime = true
 
     override fun onCreateView(
@@ -128,10 +122,12 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         // START TIME BUTTON
         startTimeButton.setOnClickListener{
             isStartTime = true
-            getTimeDateCalender()
+            shiftsModel.getTimeDateCalender()
             var startDP = DatePickerDialog(requireContext())
             startDP.setOnDateSetListener { view, year, month, dayOfMonth ->
 
+                shiftsModel.setStartDate(dayOfMonth, month, year)
+                /*
                 shiftsModel.startYear = year
                 shiftsModel.startMonth = month
                 shiftsModel.startDay = dayOfMonth
@@ -140,8 +136,9 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
                 cal.set(Calendar.YEAR, shiftsModel.startYear)
                 cal.set(Calendar.MONTH, shiftsModel.startMonth)
                 cal.set(Calendar.DAY_OF_MONTH, shiftsModel.startDay)
+                */
 
-                var startTD = TimePickerDialog(context, this, hour, minute, true)
+                var startTD = TimePickerDialog(context, this, shiftsModel.hour, shiftsModel.minute, true)
 
                 startTD.show()
             }
@@ -153,7 +150,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
         endTimeButton.setOnClickListener{
             isStartTime = false
-            getTimeDateCalender()
+            shiftsModel.getTimeDateCalender()
             var startDP = DatePickerDialog(requireContext())
             startDP.setOnDateSetListener { view, year, month, dayOfMonth ->
                 shiftsModel.endYear = year
@@ -164,7 +161,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
                 cal.set(Calendar.YEAR, shiftsModel.endYear)
                 cal.set(Calendar.MONTH, shiftsModel.endMonth)
                 cal.set(Calendar.DAY_OF_MONTH, shiftsModel.endDay)
-                var startTD = TimePickerDialog(context, this, hour, minute, true)
+                var startTD = TimePickerDialog(context, this, shiftsModel.hour, shiftsModel.minute, true)
                 startTD.show()
             }
             startDP.show()
@@ -208,17 +205,11 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
     }
 
-
-    private fun getTimeDateCalender(){
-
-        var cal = Calendar.getInstance()
-        hour = cal.get(Calendar.HOUR_OF_DAY)
-        minute = cal.get(Calendar.MINUTE)
-        day = cal.get(Calendar.DAY_OF_MONTH)
-        month = cal.get(Calendar.MONTH)
-        year = cal.get(Calendar.YEAR)
-
+    fun pickEndTime(){
+        var endTD = TimePickerDialog(requireContext(), this, shiftsModel.hour, shiftsModel.minute, true)
+        endTD.show()
     }
+
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
 
@@ -227,6 +218,10 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
 
         if(isStartTime){
+            shiftsModel.setStartTime(minute, hourOfDay)
+            isStartTime = false
+            pickEndTime()
+        /*
             shiftsModel.startHour = hourOfDay
             shiftsModel.startMinute = minute
             val cal = Calendar.getInstance()
@@ -247,8 +242,14 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             Log.d("timmydebug", shiftsModel.startHour.toString() + " " + shiftsModel.startMinute.toString())
             Log.d("timmydebug", "Start time set to " + startStamp.toString())
             Log.d("timmydebug", "As a date: " + dateString)
-
+*/
         } else {
+            isStartTime = true
+            shiftsModel.setEndTime(minute, hourOfDay)
+
+
+
+ /*         isFirstTime = true
             shiftsModel.endHour = hourOfDay
             shiftsModel.endMinute = minute
             val cal = Calendar.getInstance()
@@ -280,7 +281,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
             val startStamp = cal.timeInMillis
 
             shiftsModel.calcDuration(startStamp, endStamp)
-
+*/
         }
     }
 
