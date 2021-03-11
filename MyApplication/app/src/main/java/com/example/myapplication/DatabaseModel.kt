@@ -241,37 +241,17 @@ class DatabaseModel(ctx: Context)
             var eHourString = ""
             var eMinString = ""
 
-            if(sMon < 10){
-                sMonString = "0" + sMon.toString()
-            } else{
-                sMonString = sMon.toString()
-            }
+            if(sMon < 10){ sMonString = "0" + sMon.toString() } else{ sMonString = sMon.toString() }
 
-            if(sD < 10){
-                sDayString = "0" + sD.toString()
-            } else{
-                sDayString = sD.toString()
-            }
-            if(sH < 10){
-                sHourString = "0" + sH.toString()
-            } else{
-                sHourString = sH.toString()
-            }
-            if(sMin < 10){
-                sMinString = "0" + sMin.toString()
-            } else{
-                sMinString = sMin.toString()
-            }
-            if(eH < 10){
-                eHourString = "0" + eH.toString()
-            } else{
-                eHourString = eH.toString()
-            }
-            if(eMin < 10){
-                eMinString = "0" + eMin.toString()
-            } else{
-                eMinString = eMin.toString()
-            }
+            if(sD < 10){ sDayString = "0" + sD.toString() } else{ sDayString = sD.toString() }
+
+            if(sH < 10){ sHourString = "0" + sH.toString() } else{ sHourString = sH.toString() }
+
+            if(sMin < 10){ sMinString = "0" + sMin.toString() } else{ sMinString = sMin.toString() }
+
+            if(eH < 10){ eHourString = "0" + eH.toString() } else{ eHourString = eH.toString() }
+
+            if(eMin < 10){ eMinString = "0" + eMin.toString() } else{ eMinString = eMin.toString() }
 
             var readableText = sDayString + "/" + sMonString + " " + sHourString + ":" + sMinString + " - " + eHourString + ":" + eMinString
             return readableText
