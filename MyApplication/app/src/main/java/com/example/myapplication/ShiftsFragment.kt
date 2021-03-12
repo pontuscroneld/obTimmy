@@ -4,27 +4,26 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.DialogInterface
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.Navigation.findNavController
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
-import android.content.SharedPreferences
-import org.w3c.dom.Text
 
 
 class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener, CoroutineScope by MainScope() {
@@ -39,8 +38,8 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     var isStartTime = true
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_shifts_2, container, false)
@@ -68,6 +67,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
         var shiftRV = view.findViewById<RecyclerView>(R.id.shiftsRecView)
         shiftRV.layoutManager = LinearLayoutManager(context)
+        shiftRV.addItemDecoration(DividerItemDecoration(shiftRV.context, DividerItemDecoration.VERTICAL))
         shiftRV.adapter = shiftsadapter
 
 
@@ -79,7 +79,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
 
 
 
-        wageSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+        wageSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 Log.d("timmydebug", progress.toString())
                 view.findViewById<TextView>(R.id.shiftsWageTV).text = "Timlön: " + progress
@@ -156,11 +156,13 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         val calcButton = view.findViewById<Button>(R.id.shiftsTotalButton)
         calcButton.setOnClickListener {
 
+            findNavController().navigate(R.id.action_shiftsToFinal)
+/*
             var totalText = view.findViewById<TextView>(R.id.shiftsTotalTV)
 
             launch {
                 totalText.text = "Total lön: " + shiftsModel.calculateSumOfEarnings()
-            }
+            }*/
         }
 
         shiftsModel.getErrormessage().observe(viewLifecycleOwner, {

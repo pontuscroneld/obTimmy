@@ -183,7 +183,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
                 setRequestProperty("Accept", "application/json")
 
             }
-
+            Log.d("timmydebug", theurl.toString())
             val reader = BufferedReader(theConnection.inputStream.reader())
             Log.d("timmydebug", "Kommer den hit?")
             val theResultString = reader.readText()
