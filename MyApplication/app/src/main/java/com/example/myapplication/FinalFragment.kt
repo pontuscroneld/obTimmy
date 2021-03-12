@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -7,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
@@ -25,6 +27,8 @@ class FinalFragment : Fragment(), CoroutineScope by MainScope() {
     var sliderDouble = sliderValue.toDouble()
 
     lateinit var resultTV : TextView
+    lateinit var loadingBar : ProgressBar
+    lateinit var sumTV1 : TextView
 
 
     override fun onCreateView(
@@ -38,18 +42,21 @@ class FinalFragment : Fragment(), CoroutineScope by MainScope() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        loadingBar = view.findViewById<ProgressBar>(R.id.finalProgressBar)
         resultTV = view.findViewById<TextView>(R.id.finalResultTV)
+        resultTV.visibility = View.VISIBLE
+        loadingBar.visibility = View.INVISIBLE
         databaseModel = DatabaseModel(requireContext())
         shiftsModel = ViewModelProvider(this).get(ShiftsModel::class.java)
         shiftsModel.database = databaseModel
+        sumTV1 = view.findViewById<TextView>(R.id.finalTV1)
+
 
         var taxSlider = view.findViewById<SeekBar>(R.id.finalSeekBar)
         taxSlider.max = 50
         taxSlider.progress = sliderValue
 
-        //view.findViewById<TextView>(R.id.finalResultTV).text = applyTax(taxrate = sliderDouble, wage = totalWage)
         applyTaxForReals(taxrate = sliderDouble)
-
 
         taxSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -67,61 +74,44 @@ class FinalFragment : Fragment(), CoroutineScope by MainScope() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 applyTaxForReals(taxrate = sliderDouble)
             }
-
         })
 
-        val resetButton = view.findViewById<Button>(R.id.finalResetButton)
-        resetButton.setOnClickListener {
-
-            Log.d("timmydebug", "Update")
-
-            //view.findViewById<TextView>(R.id.finalResultTV).text = applyTax(taxrate = sliderDouble, wage = totalWage)
-            applyTaxForReals(taxrate = sliderDouble)
+        view.findViewById<Button>(R.id.finalBackButton).setOnClickListener {
+            findNavController().navigate(R.id.actionFinalBack)
         }
-
-
-    }
-
-    fun applyTax(taxrate: Double, wage : Int) : String {
-
-        var taxRateMultiplication = (100-taxrate)/100
-
-        var finalPayment = wage*taxRateMultiplication
-        return finalPayment.toString() + "0 kr"
-
     }
 
     fun applyTaxForReals(taxrate: Double){
 
+        showHide(loadingBar) //Invisible
+        showHide(resultTV) // Visible
 
         launch(Dispatchers.IO) {
+
             var totalEarnings = shiftsModel.calculateSumOfEarnings()
-
             var taxRateMultiplication = (100-taxrate)/100
-
             var finalPayment = totalEarnings*taxRateMultiplication
-
             var fpi = finalPayment.roundToInt()
-
-
+            Log.d("12march", shiftsModel.seeTotalTime())
             Log.d("12march", finalPayment.toString())
-
-
+            var line1 = "Total arbetstid:\n" + shiftsModel.seeTotalTime()
+            var line2 = shiftsModel.seeTotalOBEarnings()
 
             launch(Dispatchers.Main){
                 resultTV.text = fpi.toString() + "kr"
+                sumTV1.text = line1 + line2
+                //sumTV2.text = line2
+                showHide(loadingBar) // Visible
+                showHide(resultTV)
             }
-
-            //showTaxedIncome(finalResult)
-
         }
-
-
     }
 
-    fun showTaxedIncome(String : String){
-
-        resultTV.text = String
-
+    fun showHide(view:View) {
+        view.visibility = if (view.visibility == View.VISIBLE){
+            View.INVISIBLE
+        } else{
+            View.VISIBLE
+        }
     }
 }

@@ -39,5 +39,9 @@
         android:id="@+id/finalFragment"
         android:name="com.example.myapplication.FinalFragment"
         android:label="fragment_final"
-        tools:layout="@layout/fragment_final" />
+        tools:layout="@layout/fragment_final" >
+        <action
+            android:id="@+id/actionFinalBack"
+            app:destination="@id/shiftsFragment" />
+    </fragment>
 </navigation>

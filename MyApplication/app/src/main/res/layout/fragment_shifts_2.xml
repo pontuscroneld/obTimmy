@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="116dp"
-        android:fontFamily="sans-serif-medium"
+        android:fontFamily="sans-serif-light"
         android:text="Lägg till ett skift"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,10 +20,12 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/shiftsRecView"
         android:layout_width="0dp"
-        android:layout_height="300dp"
+        android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/shiftsStartTimeButton" />
@@ -48,17 +50,24 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
+        android:fontFamily="sans-serif-light"
+        android:textColor="@color/black"
         android:text="Timlön:"
+        android:textAllCaps="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/shiftsSliderBar" />
 
     <Button
         android:id="@+id/resetButton"
-        android:layout_width="wrap_content"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Töm listan"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="50dp"
+        android:backgroundTint="@color/black"
+        android:fontFamily="sans-serif-light"
+        android:text="Nollställ"
+        android:textColor="@color/orange"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/shiftsRecView" />
 
@@ -68,30 +77,24 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="24dp"
+        android:fontFamily="sans-serif-light"
         android:text="Spara"
+        android:textAllCaps="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/shiftsSliderBar" />
 
     <Button
         android:id="@+id/shiftsTotalButton"
-        android:layout_width="wrap_content"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:text="Räkna ihop"
+        android:layout_marginEnd="50dp"
+        android:fontFamily="sans-serif-light"
+        android:text="Vidare
+"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/shiftsRecView" />
-
-    <TextView
-        android:id="@+id/shiftsTotalTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="TextView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/shiftsTotalButton" />
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

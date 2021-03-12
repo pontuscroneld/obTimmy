@@ -112,7 +112,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
         calcDuration(startStamp, endStamp)
     }
 
-    //////////////API//////////////////////////////////////////////////////////////////////
+    ////////////// API //////////////////////////////////////////////////////////////////////
 
     fun getDateInfo(): LiveData<String> {
         return VMdateInfo
@@ -251,11 +251,60 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
             for (shift in listOfShifts) {
                 Log.d("10Marchdebug", shift.readableTime!!)
                 Log.d("10Marchdebug", "This shift is worth: " + shift.shiftEarnings.toString())
-                totalEarnings = totalEarnings + shift.shiftEarnings!!
+                totalEarnings = totalEarnings + shift.shiftEarnings!! + shift.obEarnings!!
                 Log.d("10Marchdebug", "Total earnings are: " + totalEarnings.toString())
             }
 
             return@withContext totalEarnings
+        }
+    }
+
+    suspend fun seeTotalTime() : String {
+
+        var allMinutes = 0L
+        var allHours = 0
+        var remainderMinutes = 0L
+
+        return withContext(Dispatchers.IO) {
+
+            var listOfShifts = database.shiftDB.ShiftDao().loadAll()
+
+            for (shift in listOfShifts) {
+                allMinutes += shift.shiftDuration!!
+            }
+
+            Log.d("12march", allMinutes.toString())
+            allHours = allMinutes.toInt()/60
+            remainderMinutes = allMinutes-allHours*60
+
+            return@withContext allHours.toString() + "h och " + remainderMinutes + "min"
+        }
+    }
+
+    suspend fun seeTotalOBEarnings() : String {
+
+        var allEarnings = 0.0
+        var allOBEarnings = 0.0
+
+        return withContext(Dispatchers.IO) {
+
+            var listOfShifts = database.shiftDB.ShiftDao().loadAll()
+
+            for (shift in listOfShifts) {
+                allEarnings += shift.shiftEarnings!!
+            }
+
+            for(shift in listOfShifts){
+                allOBEarnings += shift.obEarnings!!
+            }
+
+            var obInt = allOBEarnings.toInt()
+            var wageInt = allEarnings.toInt()
+            var bruttoInkomst = obInt+wageInt
+
+            var summary = "\nBrutto inkomst: " + bruttoInkomst + "kr\nOrdinarie lön: " + wageInt + "kr\nOB-ersättning: " + obInt + "kr"
+
+            return@withContext summary
         }
     }
 
@@ -277,9 +326,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
         } else {
 
             var diffTime = (endStamp - startStamp) / 1000
-
             // Diff time är tiden man jobbar i sekunder
-
             var diffTimeInMinutes = diffTime / 60
             val diffTimeInHours = diffTime / 3600
             val minutesMinusHours = diffTimeInMinutes - (diffTimeInHours * 60)
@@ -287,48 +334,24 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
             var minuteWage = hourlyWage.toDouble() / 60
             var earnings = (diffTimeInHours * hourlyWage) + (minutesMinusHours * minuteWage)
             Log.d("timmydebug", "Timmar: " + diffTimeInHours + " Minuter: " + diffTimeInMinutes)
-
             loadDate(startStamp, endStamp)
-
         }
     }
 
-    fun createShift(
-        startTime: Long,
-        endTime: Long,
-        date: String,
-        dayOfTheWeek: String,
-        redDay: String,
-        holiday: String?
+    fun createShift(startTime: Long, endTime: Long, date: String, dayOfTheWeek: String, redDay: String, holiday: String?
     ) {
 
         var newShift = DatabaseModel.SingleShift2()
 
-        if (redDay == "Ja") {
-            // Daytype är Holiday
-            newShift.weekday = dayType.holidayDay
-        }
-
+        if (redDay == "Ja") { newShift.weekday = dayType.holidayDay }
         if (holiday == null && redDay == "Nej") {
-
-            if (dayOfTheWeek == "Lördag") {
-                newShift.weekday = dayType.holidayEve
-                // Daytype är holidayEve
-            } else {
-                newShift.weekday = dayType.notHoliday
-                // Daytype är notHoliday
-            }
+            if (dayOfTheWeek == "Lördag") { newShift.weekday = dayType.holidayEve
+            } else { newShift.weekday = dayType.notHoliday }
         }
-
-        if (holiday != null && redDay == "Nej") {
-            //Daytype är holidayEve
-            newShift.weekday = dayType.holidayEve
-        }
-
+        if (holiday != null && redDay == "Nej") { newShift.weekday = dayType.holidayEve }
 
         val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd")
         val dateString = simpleDateFormat.format(startTime)
-
 
         launch(Dispatchers.IO) {
             newShift.shiftDuration = (endTime - startTime) / 1000 / 60

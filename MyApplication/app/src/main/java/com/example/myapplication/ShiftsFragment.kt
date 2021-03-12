@@ -8,11 +8,10 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation.findNavController
@@ -32,6 +31,16 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     lateinit var shiftsModel : ShiftsModel
     lateinit var shiftsadapter : ShiftsAdapter
     lateinit var sharedPreferences: SharedPreferences
+
+
+    var x1 : Float = 0.0f
+    var x2 : Float = 0.0f
+    var y1 : Float = 0.0f
+    var y2 : Float = 0.0f
+
+    companion object {
+        const val MIN_DISTANCE = 150
+    }
 
     var sliderValue = 0
 
@@ -55,6 +64,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         shiftsadapter = ShiftsAdapter(ctx = requireContext())
         shiftsModel.getAllShifts()
         shiftsadapter.shiftFrag = this
+
 
         var savedWage = loadWageData()
 
@@ -187,6 +197,8 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     }
 
 
+
+
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
 
     }
@@ -227,6 +239,9 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         return savedInt
 
     }
+
+
+
 }
 
     /*
