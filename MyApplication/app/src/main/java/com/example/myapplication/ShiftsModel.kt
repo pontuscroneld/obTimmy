@@ -102,7 +102,10 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
 
         val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
         val dateString = simpleDateFormat.format(endStamp)
+        val dateString2 = simpleDateFormat.format(startStamp)
 
+        Log.d("timmydebug", "Start time set to " + startStamp.toString())
+        Log.d("timmydebug", "As a date: " + dateString2)
         Log.d("timmydebug", "End time set to " + endStamp.toString())
         Log.d("timmydebug", "As a date: " + dateString)
 
@@ -121,9 +124,9 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
 
             val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd")
             val dateString = simpleDateFormat.format(chosenDate)
-
+            Log.d("timmydebug", dateString)
             val firstDate = loadapi(dateString)
-
+            Log.d("timmydebug", "firstDate loaded")
             if (firstDate.datum == null) {
                 //errorString.value = "Felaktig start"
                 return@launch
@@ -171,16 +174,18 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
         Log.d("timmydebug", "Running fun loadapi in ShiftsModel")
 
         return withContext(Dispatchers.IO) {
-            val theurl = URL("http://sholiday.faboul.se/dagar/v2.1/" + dateString)
+            val theurl = URL("https://sholiday.faboul.se/dagar/v2.1/" + dateString)
 
 
             val theConnection = (theurl.openConnection() as? HttpURLConnection)!!.apply {
                 requestMethod = "GET"
                 setRequestProperty("Content-Type", "application/json; charset=utf-8")
                 setRequestProperty("Accept", "application/json")
+
             }
 
             val reader = BufferedReader(theConnection.inputStream.reader())
+            Log.d("timmydebug", "Kommer den hit?")
             val theResultString = reader.readText()
             val theInfo = Gson().fromJson(theResultString, apiDays::class.java)
 
@@ -281,6 +286,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
 
             var minuteWage = hourlyWage.toDouble() / 60
             var earnings = (diffTimeInHours * hourlyWage) + (minutesMinusHours * minuteWage)
+            Log.d("timmydebug", "Timmar: " + diffTimeInHours + " Minuter: " + diffTimeInMinutes)
 
             loadDate(startStamp, endStamp)
 
