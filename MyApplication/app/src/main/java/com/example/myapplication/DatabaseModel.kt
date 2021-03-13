@@ -14,16 +14,11 @@ class DatabaseModel(ctx: Context)
     var liveDataShiftList = MutableLiveData<List<SingleShift2>>()
 
     init {
-
         shiftDB = Room.databaseBuilder(
                 ctx,
                 ShiftDatabase::class.java, "shifts-database"
         ).build()
-
-
     }
-
-
 
     @Entity
     data class SingleShift2(
