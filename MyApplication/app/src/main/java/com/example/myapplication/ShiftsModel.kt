@@ -308,11 +308,35 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
         }
     }
 
+    suspend fun seeTotalBreakTime() : String {
+
+        var allMinutes = 0L
+        var allHours = 0
+        var remainderMinutes = 0L
+
+        return withContext(Dispatchers.IO) {
+
+            var listOfShifts = database.shiftDB.ShiftDao().loadAll()
+
+            for (shift in listOfShifts) {
+                allMinutes += shift.breakTime!!
+            }
+
+            Log.d("12march", allMinutes.toString())
+            allHours = allMinutes.toInt()/60
+            remainderMinutes = allMinutes-allHours*60
+
+            return@withContext allHours.toString() + "h och " + remainderMinutes + "min"
+        }
+    }
+
     //////////////LOKALA FUNKTIONER///////////////////////////////////////////////////////////////
 
     fun getErrormessage(): LiveData<String> {
         return errorMessage
     }
+
+
 
 
     fun calcDuration(startStamp: Long, endStamp: Long) {
@@ -357,6 +381,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
             newShift.shiftDuration = (endTime - startTime) / 1000 / 60
             newShift.startTime = startTime
             newShift.endTime = endTime
+            newShift.breakTime = newShift.calcBreakTime()
             newShift.dayOfTheWeek = dayOfTheWeek
             newShift.shiftEarnings = newShift.getShiftEarnings(hourlyWage.toDouble())
             newShift.obEarnings = newShift.getOBHoursHandels(hourlyWage.toDouble())
@@ -369,6 +394,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
                 endHour,
                 endMinute
             )
+
 
             database.shiftDB.ShiftDao().insertAll(newShift)
             Log.d("timmydebug", newShift.toString())

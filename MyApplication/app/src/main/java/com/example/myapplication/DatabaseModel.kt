@@ -36,13 +36,14 @@ class DatabaseModel(ctx: Context)
             @ColumnInfo(name = "weekday") var weekday: dayType = dayType.notHoliday,
             @ColumnInfo(name = "shift_earnings") var shiftEarnings: Double? = null,
             @ColumnInfo(name = "ob_earnings") var obEarnings: Double? = null,
-            @ColumnInfo(name = "readable_time") var readableTime: String? = null
+            @ColumnInfo(name = "readable_time") var readableTime: String? = null,
+            @ColumnInfo(name = "break_time") var breakTime: Long? = null
 
     ) {
 
-        fun getShiftEarnings(hourlyWage: Double) : Double {
-            var diffTime = (endTime!!-startTime!!)/1000
-
+        fun getShiftEarnings(hourlyWage: Double): Double {
+            var diffTime = (endTime!! - startTime!!) / 1000
+            diffTime = diffTime - breakTime!!
             // Diff time är tiden man jobbar i sekunder
 
             var diffTimeInMinutes = diffTime / 60
@@ -51,17 +52,17 @@ class DatabaseModel(ctx: Context)
 
             Log.d("timmydebug", "Timmar: " + diffTimeInHours + " Minuter: " + minutesMinusHours)
 
-            var minuteWage = hourlyWage.toDouble()/60
-            var earnings = (diffTimeInHours * hourlyWage) + (minutesMinusHours * minuteWage )
+            var minuteWage = hourlyWage.toDouble() / 60
+            var earnings = (diffTimeInHours * hourlyWage) + (minutesMinusHours * minuteWage)
 
             Log.d("timmydebug", "Timlön för " + diffTimeInHours + " timmar + " + minutesMinusHours + " minuter blir " + earnings + "kr")
 
             return earnings
         }
 
-        fun getOBHoursHandels(hourlyWage: Double) : Double {
+        fun getOBHoursHandels(hourlyWage: Double): Double {
 
-            var minuteWage = hourlyWage.toDouble()/60
+            var minuteWage = hourlyWage.toDouble() / 60
 
             val cal = Calendar.getInstance()
             cal.timeInMillis = startTime!!
@@ -96,11 +97,11 @@ class DatabaseModel(ctx: Context)
 
                 var difference = 0L
 
-                if(OBtimeStamp < startTime!!){
-                    difference = (endTime!! - startTime!!) /1000
+                if (OBtimeStamp < startTime!!) {
+                    difference = (endTime!! - startTime!!) / 1000
 
                 } else {
-                    difference = (endTime!!-OBtimeStamp) / 1000
+                    difference = (endTime!! - OBtimeStamp) / 1000
                 }
 
                 Log.d("timmydebug", "OBTimeStamp är : " + OBtimeStamp.toString())
@@ -124,16 +125,16 @@ class DatabaseModel(ctx: Context)
 
 
             // Vardag
-            if(weekday == dayType.notHoliday){
+            if (weekday == dayType.notHoliday) {
                 val cal = Calendar.getInstance()
                 cal.set(Calendar.DAY_OF_MONTH, currentDay)
                 cal.set(Calendar.HOUR_OF_DAY, 18)
                 cal.set(Calendar.MINUTE, 15)
 
                 val OBtimeStamp = cal.time.time
-                var difference = (endTime!!-OBtimeStamp) / 1000
+                var difference = (endTime!! - OBtimeStamp) / 1000
 
-                if(difference < 0){
+                if (difference < 0) {
                     // PERSONEN FÅR INGEN OB
                     return 0.0
 
@@ -142,7 +143,7 @@ class DatabaseModel(ctx: Context)
                     difference = difference - OBHours * 3600
                     val OBMinutes = difference / 60
 
-                    var extraWage = (OBHours * hourlyWage + OBMinutes * minuteWage)/2.toDouble()
+                    var extraWage = (OBHours * hourlyWage + OBMinutes * minuteWage) / 2.toDouble()
 
                     Log.d("timmydebug", "OB-hours are: " + OBHours.toString())
                     Log.d("timmydebug", "OB-minutes are: " + OBMinutes.toString())
@@ -158,22 +159,22 @@ class DatabaseModel(ctx: Context)
 
         }
 
-        fun getOBHoursRest() : Double {
+        fun getOBHoursRest(): Double {
             val cal = Calendar.getInstance()
             cal.time.time = startTime!!
             val currentDay = cal[Calendar.DAY_OF_MONTH]
 
 
-            if(weekday == dayType.notHoliday){
+            if (weekday == dayType.notHoliday) {
                 val cal = Calendar.getInstance()
                 cal.set(Calendar.DAY_OF_MONTH, currentDay)
                 cal.set(Calendar.HOUR_OF_DAY, 20)
                 cal.set(Calendar.MINUTE, 0)
 
                 val OBtimeStamp = cal.time.time
-                var difference = (endTime!!-OBtimeStamp) / 1000
+                var difference = (endTime!! - OBtimeStamp) / 1000
 
-                if(difference < 0){
+                if (difference < 0) {
                     // PERSONEN FÅR INGEN OB
 
                 } else {
@@ -186,7 +187,7 @@ class DatabaseModel(ctx: Context)
 
                 // En vardag tjänar man 11.75kr för varje påbörjad halvtimme
             }
-            if(weekday == dayType.holidayEve){
+            if (weekday == dayType.holidayEve) {
 
                 val cal = Calendar.getInstance()
                 cal.set(Calendar.DAY_OF_MONTH, currentDay)
@@ -194,9 +195,9 @@ class DatabaseModel(ctx: Context)
                 cal.set(Calendar.MINUTE, 0)
 
                 val OBtimeStamp = cal.time.time
-                var difference = (endTime!!-OBtimeStamp) / 1000
+                var difference = (endTime!! - OBtimeStamp) / 1000
 
-                if(difference < 0){
+                if (difference < 0) {
                     // PERSONEN FÅR INGEN OB
                     return 0.0
 
@@ -210,14 +211,14 @@ class DatabaseModel(ctx: Context)
                     // En helgafton tjänar man 11.75kr för varje påbörjad halvtimme från kl 16
                 }
             }
-            if(weekday == dayType.holidayDay){
+            if (weekday == dayType.holidayDay) {
 
                 val cal = Calendar.getInstance()
                 cal.set(Calendar.DAY_OF_MONTH, currentDay)
                 cal.set(Calendar.HOUR_OF_DAY, 6)
                 cal.set(Calendar.MINUTE, 0)
 
-                var diffTime = (endTime!!-startTime!!)/1000
+                var diffTime = (endTime!! - startTime!!) / 1000
 
                 // Diff time är tiden man jobbar i sekunder
 
@@ -232,7 +233,7 @@ class DatabaseModel(ctx: Context)
             return 0.0
         }
 
-        fun getReadableTimePeriod(sMon : Int,sD : Int, sH : Int, sMin : Int, eH : Int, eMin : Int) : String{
+        fun getReadableTimePeriod(sMon: Int, sD: Int, sH: Int, sMin: Int, eH: Int, eMin: Int): String {
 
             var sMonString = ""
             var sDayString = ""
@@ -241,21 +242,57 @@ class DatabaseModel(ctx: Context)
             var eHourString = ""
             var eMinString = ""
 
-            if(sMon < 10){ sMonString = "0" + sMon.toString() } else{ sMonString = sMon.toString() }
+            if (sMon < 10) {
+                sMonString = "0" + sMon.toString()
+            } else {
+                sMonString = sMon.toString()
+            }
 
-            if(sD < 10){ sDayString = "0" + sD.toString() } else{ sDayString = sD.toString() }
+            if (sD < 10) {
+                sDayString = "0" + sD.toString()
+            } else {
+                sDayString = sD.toString()
+            }
 
-            if(sH < 10){ sHourString = "0" + sH.toString() } else{ sHourString = sH.toString() }
+            if (sH < 10) {
+                sHourString = "0" + sH.toString()
+            } else {
+                sHourString = sH.toString()
+            }
 
-            if(sMin < 10){ sMinString = "0" + sMin.toString() } else{ sMinString = sMin.toString() }
+            if (sMin < 10) {
+                sMinString = "0" + sMin.toString()
+            } else {
+                sMinString = sMin.toString()
+            }
 
-            if(eH < 10){ eHourString = "0" + eH.toString() } else{ eHourString = eH.toString() }
+            if (eH < 10) {
+                eHourString = "0" + eH.toString()
+            } else {
+                eHourString = eH.toString()
+            }
 
-            if(eMin < 10){ eMinString = "0" + eMin.toString() } else{ eMinString = eMin.toString() }
+            if (eMin < 10) {
+                eMinString = "0" + eMin.toString()
+            } else {
+                eMinString = eMin.toString()
+            }
 
             var readableText = sDayString + "/" + sMonString + " " + sHourString + ":" + sMinString + " - " + eHourString + ":" + eMinString
             return readableText
         }
+
+        fun calcBreakTime(): Long {
+
+            if (shiftDuration!! < 305) {
+                return 0
+            }
+            if (shiftDuration!! > 540) {
+                return 60
+            }
+            return 30
+        }
+
     }
 
     @Dao
@@ -277,7 +314,7 @@ class DatabaseModel(ctx: Context)
         fun nukeTable()
     }
 
-    @Database(entities = arrayOf(SingleShift2::class), version = 3)
+    @Database(entities = arrayOf(SingleShift2::class), version = 4)
     @TypeConverters(Converters::class)
     abstract class ShiftDatabase : RoomDatabase() {
         abstract fun ShiftDao(): ShiftDao

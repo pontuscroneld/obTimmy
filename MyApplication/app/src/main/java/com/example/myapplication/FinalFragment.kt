@@ -96,10 +96,11 @@ class FinalFragment : Fragment(), CoroutineScope by MainScope() {
             Log.d("12march", finalPayment.toString())
             var line1 = "Total arbetstid:\n" + shiftsModel.seeTotalTime()
             var line2 = shiftsModel.seeTotalOBEarnings()
+            var line3 = "\nTotal rasttid: " + shiftsModel.seeTotalBreakTime()
 
             launch(Dispatchers.Main){
                 resultTV.text = fpi.toString() + "kr"
-                sumTV1.text = line1 + line2
+                sumTV1.text = line1 + line2 + line3
                 //sumTV2.text = line2
                 showHide(loadingBar) // Visible
                 showHide(resultTV)
