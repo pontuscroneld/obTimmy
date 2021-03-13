@@ -11,19 +11,7 @@
         android:label="fragment_start"
         tools:layout="@layout/fragment_start" >
         <action
-            android:id="@+id/action_startToWage"
-            app:destination="@id/wageFragment" />
-        <action
             android:id="@+id/action_startToShifts"
-            app:destination="@id/shiftsFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/wageFragment"
-        android:name="com.example.myapplication.WageFragment"
-        android:label="fragment_wage"
-        tools:layout="@layout/fragment_wage" >
-        <action
-            android:id="@+id/action_wageToShifts"
             app:destination="@id/shiftsFragment" />
     </fragment>
     <fragment
@@ -34,6 +22,9 @@
         <action
             android:id="@+id/action_shiftsToFinal"
             app:destination="@id/finalFragment" />
+        <action
+            android:id="@+id/action_reset_app"
+            app:destination="@id/startFragment" />
     </fragment>
     <fragment
         android:id="@+id/finalFragment"

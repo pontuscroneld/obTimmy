@@ -31,6 +31,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     lateinit var shiftsModel : ShiftsModel
     lateinit var shiftsadapter : ShiftsAdapter
     lateinit var sharedPreferences: SharedPreferences
+    lateinit var handelsSharedPref: SharedPreferences
 
 
     var x1 : Float = 0.0f
@@ -58,6 +59,7 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
         databaseModel = DatabaseModel(requireContext())
         shiftsModel = ViewModelProvider(this).get(ShiftsModel::class.java)
         shiftsModel.database = databaseModel
@@ -65,6 +67,11 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         shiftsModel.getAllShifts()
         shiftsadapter.shiftFrag = this
 
+        loadSharedPref()
+
+        if(shiftsModel.handelsOrRestaurang == 0){
+            findNavController().navigate(R.id.action_reset_app)
+        }
 
         var savedWage = loadWageData()
 
@@ -237,6 +244,16 @@ class ShiftsFragment : Fragment(), TimePickerDialog.OnTimeSetListener, DatePicke
         view?.findViewById<Switch>(R.id.shiftsWageSwitch)!!.isChecked = savedBoolean
         shiftsModel.hourlyWage = savedInt
         return savedInt
+
+    }
+
+    fun loadSharedPref() {
+
+        handelsSharedPref = this.requireActivity().getSharedPreferences("handelsOrRest", Context.MODE_PRIVATE)
+        val savedInt = handelsSharedPref.getInt("handelsInt", 1)
+
+        Log.d("timmydebug", "Null/Handels/Restaurang: " + savedInt.toString())
+        shiftsModel.handelsOrRestaurang = savedInt
 
     }
 

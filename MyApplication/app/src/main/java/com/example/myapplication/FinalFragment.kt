@@ -1,6 +1,9 @@
 package com.example.myapplication
 
 import android.app.AlertDialog
+import android.app.PendingIntent.getActivity
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -12,13 +15,16 @@ import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.internal.ContextUtils.getActivity
 import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
 
 class FinalFragment : Fragment(), CoroutineScope by MainScope() {
 
+    lateinit var handelsSharedPref: SharedPreferences
     lateinit var databaseModel : DatabaseModel
     lateinit var shiftsModel : ShiftsModel
 
@@ -77,7 +83,24 @@ class FinalFragment : Fragment(), CoroutineScope by MainScope() {
         })
 
         view.findViewById<Button>(R.id.finalBackButton).setOnClickListener {
-            findNavController().navigate(R.id.actionFinalBack)
+            findNavController().popBackStack()
+        }
+
+        view.findViewById<TextView>(R.id.finalInfo).setOnClickListener {
+
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle("Nollställ appen till startläge")
+            builder.setMessage("Här får du valet att nollställa appen så du kan få välja mellan Handels och Restaurang igen. Om du nollställer kommer alla dina sparade uppgifter att raderas permanent.")
+
+            builder.setPositiveButton("      Nollställ") { dialog, which ->
+                // Nollställ
+                resetApp()
+            }
+
+            builder.setNegativeButton("Avbryt") { dialog, which ->
+               // Inget händer
+            }
+            builder.show()
         }
     }
 
@@ -115,4 +138,24 @@ class FinalFragment : Fragment(), CoroutineScope by MainScope() {
             View.VISIBLE
         }
     }
+
+    fun resetApp(){
+
+        //Hur gör jag en bättre reset här?
+        // Jag behöver också ändra sharedPrefs för lönen
+
+        launch(Dispatchers.IO){
+            databaseModel.shiftDB.ShiftDao().nukeTable()
+            handelsSharedPref = requireActivity().getSharedPreferences("handelsOrRest", Context.MODE_PRIVATE)
+            val editor = handelsSharedPref.edit()
+            editor.apply{
+                putInt("handelsInt", 0)
+            }.apply()
+
+            findNavController().navigate(R.id.actionFinalBack)
+
+        }
+    }
+
+
 }

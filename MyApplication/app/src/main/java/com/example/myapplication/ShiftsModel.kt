@@ -3,7 +3,9 @@ package com.example.myapplication
 import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
+import android.widget.Switch
 import android.widget.Toast
 import androidx.lifecycle.*
 import com.google.gson.Gson
@@ -20,7 +22,7 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
     private var VMdateInfo = MutableLiveData<String>()
     lateinit var shiftsadapter : ShiftsAdapter
     private val errorMessage = MutableLiveData<String>()
-
+    var handelsOrRestaurang = 1
     var hourlyWage = 0
 
 
@@ -384,7 +386,12 @@ class ShiftsModel(app: Application) : AndroidViewModel(app), CoroutineScope by M
             newShift.breakTime = newShift.calcBreakTime()
             newShift.dayOfTheWeek = dayOfTheWeek
             newShift.shiftEarnings = newShift.getShiftEarnings(hourlyWage.toDouble())
-            newShift.obEarnings = newShift.getOBHoursHandels(hourlyWage.toDouble())
+
+            if(handelsOrRestaurang == 2){
+                newShift.obEarnings = newShift.getOBHoursRest()
+            } else{
+                newShift.obEarnings = newShift.getOBHoursHandels(hourlyWage.toDouble())
+            }
             newShift.date = dateString
             newShift.readableTime = newShift.getReadableTimePeriod(
                 startMonth,
