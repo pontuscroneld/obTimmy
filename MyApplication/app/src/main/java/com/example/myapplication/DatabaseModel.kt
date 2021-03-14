@@ -190,7 +190,14 @@ class DatabaseModel(ctx: Context)
                 cal.set(Calendar.MINUTE, 0)
 
                 val OBtimeStamp = cal.time.time
-                var difference = (endTime!! - OBtimeStamp) / 1000
+                var difference = 0L
+
+                if (OBtimeStamp < startTime!!) {
+                    difference = (endTime!! - startTime!!) / 1000
+
+                } else {
+                    difference = (endTime!! - OBtimeStamp) / 1000
+                }
 
                 if (difference < 0) {
                     // PERSONEN FÅR INGEN OB
